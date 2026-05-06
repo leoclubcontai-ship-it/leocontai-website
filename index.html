@@ -40,6 +40,10 @@ nav.scrolled{background:rgba(11,23,48,.99);box-shadow:0 4px 40px rgba(0,0,0,.3)}
 .nl{display:flex;align-items:center;gap:4px;list-style:none}
 .nl a{color:rgba(255,255,255,.7);text-decoration:none;font-size:13px;padding:8px 13px;border-radius:var(--r);transition:all .25s}
 .nl a:hover,.nl a.act{color:var(--gold-b);background:rgba(191,140,60,.1)}
+.nav-login-btn{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.07);border:1.5px solid rgba(191,140,60,.35);color:rgba(255,255,255,.8);padding:9px 16px;border-radius:var(--r);font-size:13px;font-weight:600;text-decoration:none;transition:all .3s var(--spring);white-space:nowrap}
+.nav-login-btn:hover{background:rgba(191,140,60,.15);border-color:var(--gold);color:var(--gold-b);transform:translateY(-1px)}
+.nav-login-btn.logged-in{background:rgba(191,140,60,.15);border-color:var(--gold);color:var(--gold-b)}
+.nav-login-icon{font-size:14px}
 .ncta{background:var(--gold);color:var(--navy);padding:10px 22px;border-radius:var(--r);font-size:13px;font-weight:600;text-decoration:none;transition:all .3s var(--spring);white-space:nowrap}
 .ncta:hover{background:var(--gold-b);transform:translateY(-2px);box-shadow:var(--shg)}
 .nhbg{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:8px;background:none;border:none}
@@ -297,6 +301,8 @@ footer{background:#060F22;padding:72px 4% 28px;color:rgba(255,255,255,.45)}
   .fg{grid-template-columns:1fr}
   .hero-btns{flex-direction:column}
 }
+
+@media(max-width:768px){.nav-login-text{display:none}.nav-login-btn{padding:9px 12px}.nl.open~div .nav-login-btn,.nl.open~div .ncta{display:flex}}
 </style>
 <script src="firebase-config.js"></script>
 <script src="firebase-loader.js" type="module"></script>
@@ -348,7 +354,13 @@ footer{background:#060F22;padding:72px 4% 28px;color:rgba(255,255,255,.45)}
     <li><a href="contact.html">Contact</a></li>
     <li><a href="donate.html">Donate</a></li>
   </ul>
-  <a href="member.html" class="ncta">Become a Member</a>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="member-login.html" class="nav-login-btn" id="navLoginBtn">
+      <span class="nav-login-icon">👤</span>
+      <span class="nav-login-text">Login</span>
+    </a>
+    <a href="member.html" class="ncta">Become a Member</a>
+  </div>
   <button class="nhbg" id="hamburger" aria-label="Menu">
     <span></span><span></span><span></span>
   </button>
@@ -930,5 +942,25 @@ document.querySelectorAll('.amount-btn').forEach(b=>{
 })();
 </script>
 
+<!-- nav_login_script -->
+<script>
+(function(){
+  try {
+    var u = sessionStorage.getItem('leo_user');
+    var btn = document.getElementById('navLoginBtn');
+    if(!btn) return;
+    if(u) {
+      var user = JSON.parse(u);
+      btn.classList.add('logged-in');
+      btn.innerHTML = '<span class="nav-login-icon">👤</span><span class="nav-login-text">' + (user.name||'Member').split(' ')[0] + '</span>';
+      btn.href = user.role === 'admin' ? 'admin-panel.html' : 'member-portal.html';
+      btn.title = 'Go to portal';
+    } else {
+      btn.href = 'member-login.html';
+      btn.title = 'Member Login';
+    }
+  } catch(e){}
+})();
+</script>
 </body>
 </html>

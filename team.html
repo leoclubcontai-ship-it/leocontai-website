@@ -116,6 +116,8 @@ footer{background:#060F22;padding:72px 4% 28px;color:rgba(255,255,255,.45)}
 @media(max-width:1100px){.leaders-grid{grid-template-columns:repeat(3,1fr)}.mem-grid{grid-template-columns:repeat(4,1fr)}}
 @media(max-width:900px){.leaders-grid{grid-template-columns:repeat(2,1fr)}.jc-inner{grid-template-columns:1fr}.jc-img{height:280px}.mem-grid{grid-template-columns:repeat(3,1fr)}.fg{grid-template-columns:1fr 1fr}.nl,.ncta{display:none}.nhbg{display:flex}.nl.open{display:flex;flex-direction:column;position:fixed;top:var(--nav);left:0;right:0;background:rgba(11,23,48,.98);padding:20px 4% 28px;border-bottom:1px solid rgba(191,140,60,.2)}}
 @media(max-width:600px){.leaders-grid{grid-template-columns:1fr 1fr}.mem-grid{grid-template-columns:repeat(2,1fr)}.fg{grid-template-columns:1fr}}
+
+@media(max-width:768px){.nav-login-text{display:none}.nav-login-btn{padding:9px 12px}.nl.open~div .nav-login-btn,.nl.open~div .ncta{display:flex}}
 </style>
 <script src="firebase-config.js"></script>
 <script src="firebase-loader.js" type="module"></script>
@@ -156,7 +158,13 @@ footer{background:#060F22;padding:72px 4% 28px;color:rgba(255,255,255,.45)}
     <li><a href="gallery.html">Gallery</a></li><li><a href="contact.html">Contact</a></li>
     <li><a href="donate.html">Donate</a></li>
   </ul>
-  <a href="member.html" class="ncta">Become a Member</a>
+  <div style="display:flex;align-items:center;gap:8px">
+    <a href="member-login.html" class="nav-login-btn" id="navLoginBtn">
+      <span class="nav-login-icon">👤</span>
+      <span class="nav-login-text">Login</span>
+    </a>
+    <a href="member.html" class="ncta">Become a Member</a>
+  </div>
   <button class="nhbg" id="hbg"><span></span><span></span><span></span></button>
 </nav>
 
@@ -503,5 +511,25 @@ document.querySelectorAll('.mc').forEach(el=>obs.observe(el));
 })();
 </script>
 
+<!-- nav_login_script -->
+<script>
+(function(){
+  try {
+    var u = sessionStorage.getItem('leo_user');
+    var btn = document.getElementById('navLoginBtn');
+    if(!btn) return;
+    if(u) {
+      var user = JSON.parse(u);
+      btn.classList.add('logged-in');
+      btn.innerHTML = '<span class="nav-login-icon">👤</span><span class="nav-login-text">' + (user.name||'Member').split(' ')[0] + '</span>';
+      btn.href = user.role === 'admin' ? 'admin-panel.html' : 'member-portal.html';
+      btn.title = 'Go to portal';
+    } else {
+      btn.href = 'member-login.html';
+      btn.title = 'Member Login';
+    }
+  } catch(e){}
+})();
+</script>
 </body>
 </html>
