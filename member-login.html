@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Member Login — Leo Club of Contai</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="firebase-config.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#BF8C3C;--gold-b:#E2B060;--navy:#0B1730;--navy2:#142141;--spring:cubic-bezier(.34,1.56,.64,1)}
+html,body{height:100%;overflow:hidden}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--navy);color:#fff}
+.bg{position:fixed;inset:0;z-index:0}
+.bg-img{position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1559027615-cd4628902d4a?w=1600&q=80')center/cover;opacity:.07;filter:saturate(.3)}
+.bg-grad{position:absolute;inset:0;background:radial-gradient(ellipse 90% 90% at 15% 50%,rgba(28,46,84,.95) 0%,rgba(11,23,48,1) 65%)}
+.bg-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(191,140,60,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(191,140,60,.04) 1px,transparent 1px);background-size:48px 48px}
+.parts{position:fixed;inset:0;pointer-events:none;z-index:1;overflow:hidden}
+@keyframes rise{0%{transform:translateY(100vh) scale(0);opacity:0}15%{opacity:.5}85%{opacity:.1}100%{transform:translateY(-80px) scale(1.4);opacity:0}}
+.wrap{position:relative;z-index:2;min-height:100vh;display:grid;grid-template-columns:1.1fr .9fr}
+.left{display:flex;flex-direction:column;justify-content:center;padding:60px 64px;position:relative}
+.left::after{content:'';position:absolute;right:0;top:8%;bottom:8%;width:1px;background:linear-gradient(transparent,rgba(191,140,60,.25),transparent)}
+.leo-logo{display:flex;align-items:center;gap:14px;margin-bottom:48px}
+.leo-emblem{width:64px;height:64px;border-radius:50%;background:#fff;padding:4px;overflow:hidden;box-shadow:0 0 0 10px rgba(191,140,60,.07),0 0 0 20px rgba(191,140,60,.03)}
+.leo-emblem img{width:100%;height:100%;object-fit:contain;border-radius:50%}
+.leo-name strong{display:block;font-size:18px;font-weight:700;color:#fff}
+.leo-name span{font-size:11px;color:var(--gold-b);letter-spacing:.12em;text-transform:uppercase}
+.left h1{font-family:'Cormorant Garamond',serif;font-size:clamp(38px,4.5vw,64px);font-weight:600;line-height:1.03;letter-spacing:-.03em;margin-bottom:20px}
+.left h1 em{font-style:italic;color:var(--gold-b)}
+.left>p{font-size:15px;font-weight:300;color:rgba(255,255,255,.4);line-height:1.85;max-width:420px;margin-bottom:52px}
+.feats{display:flex;flex-direction:column;gap:14px}
+.feat{display:flex;align-items:center;gap:14px;padding:13px 16px;background:rgba(255,255,255,.03);border:1px solid rgba(191,140,60,.1);border-radius:12px;transition:all .3s}
+.feat:hover{background:rgba(191,140,60,.06);border-color:rgba(191,140,60,.2);transform:translateX(4px)}
+.feat-ic{width:36px;height:36px;border-radius:8px;background:rgba(191,140,60,.1);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.feat-tx{font-size:13px;color:rgba(255,255,255,.45)}
+.feat-tx strong{display:block;font-size:13px;color:rgba(255,255,255,.8);font-weight:600;margin-bottom:1px}
+.right{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:60px 56px}
+.card{width:100%;max-width:400px}
+.card-head{margin-bottom:32px}
+.card-head h2{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:600;line-height:1.1;color:#fff;margin-bottom:6px}
+.card-head h2 em{font-style:italic;color:var(--gold-b)}
+.card-head p{font-size:13px;color:rgba(255,255,255,.35)}
+.auth-tabs{display:flex;background:rgba(255,255,255,.05);border-radius:10px;padding:4px;margin-bottom:28px;border:1px solid rgba(255,255,255,.08)}
+.atab{flex:1;padding:9px;border-radius:7px;border:none;background:transparent;font-family:inherit;font-size:13px;font-weight:600;color:rgba(255,255,255,.4);cursor:pointer;transition:all .25s}
+.atab.act{background:var(--gold);color:var(--navy)}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:11px;font-weight:600;color:rgba(255,255,255,.4);letter-spacing:.08em;text-transform:uppercase;margin-bottom:7px}
+.fi{width:100%;padding:13px 16px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:9px;font-family:inherit;font-size:14px;color:#fff;outline:none;transition:all .25s}
+.fi:focus{border-color:var(--gold);background:rgba(255,255,255,.09);box-shadow:0 0 0 3px rgba(191,140,60,.12)}
+.fi::placeholder{color:rgba(255,255,255,.18)}
+.pw-wr{position:relative}
+.pw-btn{position:absolute;right:13px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:rgba(255,255,255,.25);font-size:15px;transition:color .2s;padding:4px}
+.pw-btn:hover{color:var(--gold-b)}
+.row{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px}
+.rem{display:flex;align-items:center;gap:7px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.4)}
+.rem input{accent-color:var(--gold);cursor:pointer}
+.frgt{font-size:13px;color:var(--gold);text-decoration:none;font-weight:500}
+.frgt:hover{color:var(--gold-b)}
+.sub-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--gold),#D4A040);color:var(--navy);border:none;border-radius:9px;font-size:15px;font-weight:700;cursor:pointer;font-family:'Cormorant Garamond',serif;letter-spacing:.04em;transition:all .3s var(--spring);display:flex;align-items:center;justify-content:center;gap:8px}
+.sub-btn:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(191,140,60,.3)}
+.sub-btn.busy{opacity:.7;pointer-events:none}
+.err{background:rgba(239,68,68,.1);border:1px solid rgba(239,68,68,.25);border-radius:8px;padding:11px 14px;font-size:13px;color:#fca5a5;margin-bottom:14px;display:none}
+.suc{background:rgba(34,197,94,.1);border:1px solid rgba(34,197,94,.3);border-radius:8px;padding:11px 14px;font-size:13px;color:#86efac;margin-bottom:14px;display:none}
+.divider{display:flex;align-items:center;gap:10px;margin:20px 0}
+.divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+.divider span{font-size:11px;color:rgba(255,255,255,.25);text-transform:uppercase;letter-spacing:.08em}
+.reg-link{text-align:center;font-size:13px;color:rgba(255,255,255,.35)}
+.reg-link a{color:var(--gold-b);text-decoration:none;font-weight:600}
+.back-btn{display:inline-flex;align-items:center;gap:6px;color:rgba(255,255,255,.22);font-size:12px;text-decoration:none;margin-top:26px;transition:color .25s}
+.back-btn:hover{color:rgba(255,255,255,.6)}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:16px;height:16px;border:2px solid rgba(11,23,48,.3);border-top-color:var(--navy);border-radius:50%;animation:spin .7s linear infinite}
+.hidden{display:none!important}
+@media(max-width:860px){html,body{overflow:auto}.wrap{grid-template-columns:1fr}.left{display:none}.right{min-height:100vh;padding:40px 24px}}
+</style>
+</head>
+<body>
+<div class="bg"><div class="bg-img"></div><div class="bg-grad"></div><div class="bg-grid"></div></div>
+<div class="parts" id="parts"></div>
+
+<div class="wrap">
+  <div class="left">
+    <div class="leo-logo">
+      <div class="leo-emblem">
+        <img src="leo-logo.png" alt="Leo" onerror="this.style.display='none';this.parentElement.style.background='linear-gradient(135deg,#BF8C3C,#E2B060)'">
+      </div>
+      <div class="leo-name"><strong>Leo Club of Contai</strong><span>Member &amp; Admin Portal</span></div>
+    </div>
+    <h1>Your secure<br>member <em>space</em></h1>
+    <p>All data now stored in the cloud — projects, photos, member info, contact details — synced instantly across all devices.</p>
+    <div class="feats">
+      <div class="feat"><div class="feat-ic">☁️</div><div class="feat-tx"><strong>Real Cloud Database</strong>All data synced instantly across all devices</div></div>
+      <div class="feat"><div class="feat-ic">📸</div><div class="feat-tx"><strong>Real Photo Uploads</strong>Upload photos from phone or computer</div></div>
+      <div class="feat"><div class="feat-ic">🔐</div><div class="feat-tx"><strong>Secure Firebase Auth</strong>Real accounts with password reset by email</div></div>
+      <div class="feat"><div class="feat-ic">⚙️</div><div class="feat-tx"><strong>Full Admin Control</strong>Manage everything from anywhere</div></div>
+    </div>
+  </div>
+
+  <div class="right">
+    <div class="card">
+
+      <!-- LOGIN FORM -->
+      <div id="loginForm">
+        <div class="card-head">
+          <h2>Welcome <em>back</em></h2>
+          <p>Sign in to your Leo Club member account</p>
+        </div>
+        <div class="auth-tabs">
+          <button class="atab act" onclick="switchTab('member')">Member Login</button>
+          <button class="atab" onclick="switchTab('admin')">Admin Login</button>
+        </div>
+        <div id="errBox" class="err"></div>
+        <div class="fg"><label>Email Address</label><input class="fi" type="email" id="email" placeholder="your@email.com" autocomplete="email"></div>
+        <div class="fg">
+          <label>Password</label>
+          <div class="pw-wr">
+            <input class="fi" type="password" id="pwd" placeholder="Enter your password" autocomplete="current-password">
+            <button class="pw-btn" id="pwBtn" type="button">👁</button>
+          </div>
+        </div>
+        <div class="row">
+          <label class="rem"><input type="checkbox" id="rem"> Remember me</label>
+          <a href="#" class="frgt" onclick="showReset(event)">Forgot password?</a>
+        </div>
+        <button class="sub-btn" id="loginBtn" onclick="doLogin()">Sign In →</button>
+        <div class="divider"><span>new here?</span></div>
+        <p class="reg-link">Not a member? <a href="member.html">Apply to join →</a></p>
+        <a href="index.html" class="back-btn">← Back to main website</a>
+      </div>
+
+      <!-- RESET PASSWORD FORM -->
+      <div id="resetForm" class="hidden">
+        <div class="card-head">
+          <h2>Reset <em>Password</em></h2>
+          <p>We'll send a reset link to your email</p>
+        </div>
+        <div id="resetErr" class="err"></div>
+        <div id="resetSuc" class="suc"></div>
+        <div class="fg"><label>Email Address</label><input class="fi" type="email" id="resetEmail" placeholder="your@email.com"></div>
+        <button class="sub-btn" id="resetBtn" onclick="sendReset()">Send Reset Link →</button>
+        <div style="text-align:center;margin-top:16px">
+          <a href="#" class="frgt" onclick="showLogin(event)">← Back to Login</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }          from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, sendPasswordResetEmail, setPersistence, browserLocalPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+const app  = initializeApp(window.FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// Particles
+const pc = document.getElementById('parts');
+for(let i=0;i<18;i++){
+  const s=document.createElement('span');const sz=Math.random()*4+1.5;
+  Object.assign(s.style,{width:sz+'px',height:sz+'px',left:Math.random()*100+'%',position:'absolute',borderRadius:'50%',background:'var(--gold)',animationName:'rise',animationDuration:(Math.random()*14+8)+'s',animationDelay:(Math.random()*12)+'s',animationTimingFunction:'linear',animationIterationCount:'infinite',opacity:'0'});
+  pc.appendChild(s);
+}
+
+let curTab = 'member';
+window.switchTab = t => {
+  curTab = t;
+  document.querySelectorAll('.atab').forEach((b,i) => b.classList.toggle('act',(i===0&&t==='member')||(i===1&&t==='admin')));
+  document.getElementById('errBox').style.display = 'none';
+};
+
+document.getElementById('pwBtn').addEventListener('click', function(){
+  const f=document.getElementById('pwd');const tx=f.type==='text';
+  f.type=tx?'password':'text';this.textContent=tx?'👁':'🙈';
+});
+
+window.doLogin = async () => {
+  const email = document.getElementById('email').value.trim();
+  const pwd   = document.getElementById('pwd').value;
+  const errEl = document.getElementById('errBox');
+  const btn   = document.getElementById('loginBtn');
+  errEl.style.display = 'none';
+  if(!email||!pwd){showErr('Please enter your email and password.');return;}
+  btn.innerHTML='<div class="spin"></div> Signing in…';btn.classList.add('busy');
+  try {
+    const remember = document.getElementById('rem').checked;
+    await setPersistence(auth, remember ? browserLocalPersistence : browserSessionPersistence);
+    const cred = await signInWithEmailAndPassword(auth, email, pwd);
+    const snap = await getDoc(doc(db,'users',cred.user.uid));
+    const profile = snap.exists() ? snap.data() : {role:'member',name:email};
+    if(curTab==='admin' && profile.role!=='admin'){
+      await auth.signOut();
+      btn.innerHTML='Sign In →';btn.classList.remove('busy');
+      showErr('This account does not have admin privileges.');return;
+    }
+    sessionStorage.setItem('leo_user', JSON.stringify({
+      uid:cred.user.uid, email:cred.user.email,
+      name:profile.name||email, role:profile.role||'member',
+      initials:(profile.name||email).split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'LM'
+    }));
+    window.location.href = profile.role==='admin' ? 'admin-panel.html' : 'member-portal.html';
+  } catch(e) {
+    btn.innerHTML='Sign In →';btn.classList.remove('busy');
+    showErr(e.code==='auth/invalid-credential'||e.code==='auth/wrong-password'||e.code==='auth/user-not-found'
+      ? 'Incorrect email or password.'
+      : e.code==='auth/too-many-requests'
+      ? 'Too many attempts. Please wait a few minutes.'
+      : 'Error: '+e.message);
+  }
+};
+
+window.showReset = e => {e.preventDefault();document.getElementById('loginForm').classList.add('hidden');document.getElementById('resetForm').classList.remove('hidden');};
+window.showLogin = e => {e.preventDefault();document.getElementById('resetForm').classList.add('hidden');document.getElementById('loginForm').classList.remove('hidden');};
+
+window.sendReset = async () => {
+  const email=document.getElementById('resetEmail').value.trim();
+  const btn=document.getElementById('resetBtn');
+  document.getElementById('resetErr').style.display='none';
+  document.getElementById('resetSuc').style.display='none';
+  if(!email){document.getElementById('resetErr').textContent='Please enter your email.';document.getElementById('resetErr').style.display='block';return;}
+  btn.innerHTML='<div class="spin"></div> Sending…';btn.classList.add('busy');
+  try {
+    await sendPasswordResetEmail(auth,email);
+    document.getElementById('resetSuc').textContent='✅ Reset link sent! Check your email inbox.';
+    document.getElementById('resetSuc').style.display='block';
+  } catch(e) {
+    document.getElementById('resetErr').textContent='Error: '+e.message;document.getElementById('resetErr').style.display='block';
+  }
+  btn.innerHTML='Send Reset Link →';btn.classList.remove('busy');
+};
+
+function showErr(m){const e=document.getElementById('errBox');e.textContent=m;e.style.display='block';}
+document.addEventListener('keydown',e=>{if(e.key==='Enter')window.doLogin();});
+</script>
+</body>
+</html>

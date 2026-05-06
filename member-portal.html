@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Member Portal — Leo Club of Contai</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="firebase-config.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#BF8C3C;--gold-b:#E2B060;--gold-pale:#FDF8EF;
+  --navy:#0B1730;--navy2:#142141;--navy3:#1C2E54;
+  --cream:#F4F1EB;--white:#fff;
+  --txt:#1A1A2E;--mid:#5C6478;--muted:#9AA0B0;
+  --border:#E8E3D8;--bord-s:#D4C9A8;
+  --red:#EF4444;--green:#22C55E;--blue:#3B82F6;--amber:#F59E0B;
+  --sidebar:248px;--top:60px;
+  --sh0:0 1px 3px rgba(0,0,0,.05);--sh1:0 4px 16px rgba(11,23,48,.07);
+  --sh2:0 12px 40px rgba(11,23,48,.11);--shg:0 6px 24px rgba(191,140,60,.2);
+  --r:8px;--rm:12px;--rl:16px;
+  --ease:cubic-bezier(.4,0,.2,1);--spring:cubic-bezier(.34,1.56,.64,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:var(--txt);overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--bord-s);border-radius:3px}
+
+.guard{display:none;position:fixed;inset:0;background:var(--navy);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.guard.on{display:flex}.guard p{color:rgba(255,255,255,.5);font-size:15px}.guard a{color:#E2B060;text-decoration:none;font-weight:600}
+
+/* SIDEBAR */
+.sb{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar);background:var(--navy);z-index:200;display:flex;flex-direction:column;transition:transform .35s var(--ease);overflow-y:auto}
+.sb-top{padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:11px;flex-shrink:0}
+.sb-logo{width:38px;height:38px;border-radius:50%;background:#fff;padding:2px;overflow:hidden;flex-shrink:0}
+.sb-logo img{width:100%;height:100%;object-fit:contain;border-radius:50%}
+.sb-info strong{display:block;font-size:13px;font-weight:600;color:#fff;line-height:1.2}
+.sb-info span{font-size:10px;color:rgba(191,140,60,.8);letter-spacing:.08em;text-transform:uppercase}
+.sb-user{padding:12px 18px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.sb-av{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-b));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--navy);flex-shrink:0}
+.sb-uname{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-urole{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em}
+.sb-nav{flex:1;padding:6px 0}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.22);font-weight:600;padding:12px 20px 4px}
+.sbl{display:flex;align-items:center;gap:9px;padding:9px 20px;color:rgba(255,255,255,.5);font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;cursor:pointer;border-left:3px solid transparent;transition:all .2s;font-family:inherit}
+.sbl:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.05)}
+.sbl.act{color:#fff;background:rgba(191,140,60,.12);border-left-color:var(--gold)}
+.sbl .ic{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.sbl .ct{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px}
+.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.sb-logout{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;border:none;background:none;font-family:inherit;transition:color .2s}
+.sb-logout:hover{color:#f87171}
+
+/* TOPBAR */
+.tb{position:fixed;top:0;left:var(--sidebar);right:0;height:var(--top);background:rgba(244,241,235,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:100}
+.tb-l{display:flex;align-items:center;gap:12px}
+.tb-hbg{display:none;background:none;border:none;cursor:pointer;font-size:20px;color:var(--txt);padding:4px}
+.tb-title{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy)}
+.tb-title em{font-style:italic;color:var(--gold)}
+.tb-r{display:flex;align-items:center;gap:8px}
+.tb-btn{height:36px;padding:0 13px;border-radius:var(--r);border:1px solid var(--border);background:#fff;font-family:inherit;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .22s;display:flex;align-items:center;gap:6px}
+.tb-btn:hover{border-color:var(--bord-s);color:var(--txt)}
+.tb-btn.g{background:var(--gold);color:var(--navy);border-color:var(--gold)}.tb-btn.g:hover{background:var(--gold-b)}
+.tb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy3));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);border:2px solid var(--border);cursor:pointer}
+
+/* MAIN */
+.main{margin-left:var(--sidebar);padding-top:var(--top);min-height:100vh}
+.pg{padding:22px;display:none}.pg.act{display:block}
+
+/* WELCOME HEADER */
+.wh{background:linear-gradient(135deg,var(--navy),var(--navy3));border-radius:var(--rl);padding:28px 32px;margin-bottom:20px;position:relative;overflow:hidden}
+.wh-grid{position:absolute;inset:0;background-image:linear-gradient(rgba(191,140,60,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(191,140,60,.05) 1px,transparent 1px);background-size:32px 32px}
+.wh-inner{position:relative;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+.wh h1{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:600;color:#fff;line-height:1.1;margin-bottom:4px}
+.wh h1 em{font-style:italic;color:var(--gold-b)}
+.wh p{color:rgba(255,255,255,.45);font-size:13px}
+.wh-stats{display:flex;gap:16px;flex-wrap:wrap}
+.wh-stat{text-align:center;padding:10px 18px;background:rgba(255,255,255,.06);border:1px solid rgba(191,140,60,.15);border-radius:var(--rm)}
+.wh-stat .n{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--gold);line-height:1}
+.wh-stat .l{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.07em;margin-top:2px}
+
+/* CARDS ROW */
+.cards-row{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px}
+.sc{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:16px;box-shadow:var(--sh0);position:relative;overflow:hidden;transition:all .28s;cursor:pointer}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc.c1::before{background:linear-gradient(90deg,#e74c3c,#f39c12)}.sc.c2::before{background:linear-gradient(90deg,#27ae60,#2ecc71)}
+.sc.c3::before{background:linear-gradient(90deg,var(--gold),var(--gold-b))}.sc.c4::before{background:linear-gradient(90deg,#3b82f6,#8b5cf6)}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--sh1)}
+.sc-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px;margin-bottom:10px}
+.sc-ic.c1{background:rgba(231,76,60,.1)}.sc-ic.c2{background:rgba(39,174,96,.1)}.sc-ic.c3{background:rgba(191,140,60,.1)}.sc-ic.c4{background:rgba(59,130,246,.1)}
+.sc-n{font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:var(--navy);line-height:1;margin-bottom:2px}
+.sc-l{font-size:12px;color:var(--mid)}
+
+/* SECTION HEADER */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.sec-hd h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy)}
+.sec-hd h2 em{font-style:italic;color:var(--gold)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .25s var(--spring);text-decoration:none;white-space:nowrap}
+.btn-gold{background:var(--gold);color:var(--navy)}.btn-gold:hover{background:var(--gold-b);transform:translateY(-1px)}
+.btn-out{background:transparent;border:1.5px solid var(--bord-s);color:var(--mid)}.btn-out:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-lg{padding:12px 24px;font-size:14px;border-radius:var(--rm)}
+
+/* CARD */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh0);overflow:hidden;margin-bottom:14px}
+.card-hd{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px}
+.card-hd h3{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:600;color:var(--navy)}
+.card-hd h3 em{font-style:italic;color:var(--gold)}
+.card-body{padding:18px}
+
+/* FORM */
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.fg label{font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.06em;text-transform:uppercase}
+.fi{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-family:inherit;font-size:13px;color:var(--txt);background:#fff;outline:none;transition:all .22s}
+.fi:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(191,140,60,.1)}
+.fi::placeholder{color:var(--muted)}
+textarea.fi{resize:vertical;min-height:80px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg.full{grid-column:1/-1}
+.toast{padding:10px 14px;border-radius:var(--r);font-size:13px;font-weight:500;margin-bottom:12px;display:none}
+.toast.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.toast.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+
+/* PROJECT GRID */
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.pcard{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;transition:all .3s;cursor:pointer}
+.pcard:hover{transform:translateY(-4px);box-shadow:var(--sh2);border-color:var(--bord-s)}
+.pc-img{height:170px;overflow:hidden;position:relative;background:var(--navy2)}
+.pc-img img{width:100%;height:100%;object-fit:cover;transition:transform .5s}
+.pcard:hover .pc-img img{transform:scale(1.06)}
+.pc-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:44px}
+.pc-ov{position:absolute;inset:0;background:linear-gradient(to top,rgba(11,23,48,.5),transparent 55%)}
+.pc-cat{position:absolute;top:10px;left:10px;padding:3px 9px;border-radius:100px;font-size:10px;font-weight:700;color:#fff}
+.pc-date{position:absolute;bottom:10px;right:10px;background:rgba(11,23,48,.7);border:1px solid rgba(191,140,60,.2);border-radius:100px;padding:3px 9px;font-size:11px;color:var(--gold-b)}
+.pc-body{padding:14px}
+.pc-cat-tag{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.04em;text-transform:uppercase;margin-bottom:6px}
+.pc-body h3{font-size:14px;font-weight:600;color:var(--navy);line-height:1.3;margin-bottom:6px}
+.pc-body p{font-size:12px;color:var(--mid);line-height:1.7;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pc-footer{display:flex;align-items:center;padding:10px 14px;border-top:1px solid var(--border);gap:8px}
+.pc-av{width:24px;height:24px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy3));display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:var(--gold);flex-shrink:0}
+.pc-aname{font-size:11px;color:var(--mid);flex:1}
+
+/* EVENTS */
+.ev-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;display:flex;transition:all .3s;margin-bottom:10px}
+.ev-card:hover{border-color:var(--bord-s);box-shadow:var(--sh1);transform:translateY(-2px)}
+.ev-date{background:linear-gradient(135deg,var(--navy),var(--navy3));padding:16px 14px;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:64px;flex-shrink:0}
+.ev-day{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:700;color:var(--gold);line-height:1}
+.ev-mon{font-size:10px;color:rgba(255,255,255,.5);text-transform:uppercase;letter-spacing:.08em;margin-top:2px}
+.ev-body{padding:14px 16px;flex:1}
+.ev-cat{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px}
+.ev-title{font-size:14px;font-weight:600;color:var(--navy);margin-bottom:5px}
+.ev-meta{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--mid)}
+.ev-right{padding:14px 12px;display:flex;flex-direction:column;align-items:flex-end;justify-content:space-between;gap:8px;flex-shrink:0}
+.ev-st{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px}
+.ev-st.up{background:rgba(59,130,246,.1);color:var(--blue)}.ev-st.open{background:rgba(34,197,94,.1);color:var(--green)}.ev-st.soon{background:rgba(245,158,11,.1);color:var(--amber)}
+.rsvp-btns{display:flex;gap:5px}
+.rsvp-btn{padding:5px 11px;border-radius:5px;font-size:11px;font-weight:600;cursor:pointer;border:1.5px solid;font-family:inherit;transition:all .2s}
+.rsvp-y{border-color:rgba(34,197,94,.3);color:var(--green);background:rgba(34,197,94,.06)}.rsvp-y:hover,.rsvp-y.act{background:var(--green);color:#fff;border-color:var(--green)}
+.rsvp-n{border-color:rgba(239,68,68,.3);color:var(--red);background:rgba(239,68,68,.05)}.rsvp-n:hover,.rsvp-n.act{background:var(--red);color:#fff;border-color:var(--red)}
+
+/* POLLS */
+.poll-card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:20px;margin-bottom:12px;transition:all .3s}
+.poll-card:hover{border-color:var(--bord-s);box-shadow:var(--sh1)}
+.poll-hd{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:12px;gap:10px}
+.poll-q{font-size:14px;font-weight:600;color:var(--navy);line-height:1.4}
+.poll-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:100px;flex-shrink:0}
+.pb-act{background:rgba(34,197,94,.1);color:var(--green)}.pb-hot{background:rgba(239,68,68,.1);color:var(--red)}.pb-cls{background:rgba(100,100,100,.1);color:var(--mid)}
+.poll-meta{font-size:12px;color:var(--mid);margin-bottom:14px}
+.poll-opts{display:flex;flex-direction:column;gap:8px}
+.poll-opt{position:relative;cursor:pointer}
+.poll-opt input{position:absolute;opacity:0;pointer-events:none}
+.poll-opt-inner{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--border);border-radius:var(--r);transition:all .2s;background:#fff;overflow:hidden;position:relative}
+.poll-opt:hover .poll-opt-inner{border-color:var(--bord-s)}
+.poll-opt input:checked~.poll-opt-inner{border-color:var(--gold);background:var(--gold-pale)}
+.poll-bar{position:absolute;left:0;top:0;bottom:0;background:rgba(191,140,60,.08);transition:width .6s var(--ease)}
+.poll-txt{font-size:13px;font-weight:500;color:var(--txt);position:relative;z-index:1;flex:1}
+.poll-pct{font-size:12px;font-weight:700;color:var(--gold);position:relative;z-index:1}
+.poll-footer{display:flex;align-items:center;justify-content:space-between;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;color:var(--mid)}
+
+/* ANNOUNCEMENTS */
+.ann-card{background:#fff;border:1px solid var(--border);border-left:4px solid;border-radius:var(--rl);padding:14px 16px;margin-bottom:10px;transition:all .28s}
+.ann-card:hover{box-shadow:var(--sh1);transform:translateX(3px)}
+.ann-card.info{border-left-color:var(--blue)}.ann-card.alert{border-left-color:var(--red)}.ann-card.success{border-left-color:var(--green)}.ann-card.gold{border-left-color:var(--gold)}
+.ann-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:5px}
+.ann-title{font-size:14px;font-weight:600;color:var(--navy)}
+.ann-badge{font-size:10px;padding:2px 7px;border-radius:100px;font-weight:600;flex-shrink:0}
+.ann-badge.info{background:rgba(59,130,246,.1);color:var(--blue)}.ann-badge.alert{background:rgba(239,68,68,.1);color:var(--red)}.ann-badge.success{background:rgba(34,197,94,.1);color:var(--green)}.ann-badge.gold{background:rgba(191,140,60,.1);color:var(--gold)}
+.ann-body{font-size:13px;color:var(--mid);line-height:1.7}
+.ann-footer{display:flex;gap:10px;margin-top:6px;font-size:11px;color:var(--muted)}
+
+/* UPLOAD FORM */
+.img-drop{border:2px dashed var(--bord-s);border-radius:var(--rm);padding:16px;text-align:center;cursor:pointer;transition:all .22s;background:#FAFAF7;position:relative}
+.img-drop:hover{border-color:var(--gold);background:var(--gold-pale)}
+.img-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-drop-ic{font-size:24px;margin-bottom:4px}
+.img-drop-tx{font-size:12px;color:var(--mid)}
+.img-prev{margin-top:8px;display:none}
+.img-prev img{width:100%;height:140px;object-fit:cover;border-radius:var(--rm);border:1px solid var(--border)}
+.upload-progress{height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden;display:none}
+.upload-progress-bar{height:100%;background:var(--gold);width:0;transition:width .3s;border-radius:2px}
+.cat-chips{display:flex;flex-wrap:wrap;gap:7px}
+.cc{padding:6px 12px;border:1.5px solid var(--border);border-radius:100px;background:#fff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--mid);transition:all .22s}
+.cc:hover{border-color:var(--bord-s)}.cc.on{border-color:var(--gold);background:var(--gold-pale);color:var(--navy)}
+
+/* LEADERBOARD */
+.lb-row{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);transition:background .2s}
+.lb-row:last-child{border-bottom:none}.lb-row:hover{background:#FAFAF7}
+.lb-rank{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0}
+.lb-rank.r1{background:linear-gradient(135deg,#ffd700,#ffb347);color:var(--navy)}.lb-rank.r2{background:linear-gradient(135deg,#c0c0c0,#a8a8a8);color:#fff}.lb-rank.r3{background:linear-gradient(135deg,#cd7f32,#a0522d);color:#fff}.lb-rank.rn{background:rgba(11,23,48,.08);color:var(--mid)}
+.lb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy3));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);border:2px solid rgba(191,140,60,.2);flex-shrink:0}
+.lb-info{flex:1}
+.lb-name{font-size:13px;font-weight:600;color:var(--navy)}
+.lb-role{font-size:11px;color:var(--mid)}
+.lb-pts .n{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:700;color:var(--gold);line-height:1}
+.lb-pts .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+
+/* LIGHTBOX */
+.lb{position:fixed;inset:0;background:rgba(6,15,34,.95);z-index:9999;display:none;align-items:center;justify-content:center;padding:20px}
+.lb.open{display:flex}
+.lb-inner{max-width:800px;width:100%;background:#fff;border-radius:var(--rl);overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,.3)}
+.lb-img{height:340px;overflow:hidden}
+.lb-img img{width:100%;height:100%;object-fit:cover}
+.lb-img-ph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:80px;background:linear-gradient(135deg,var(--navy),var(--navy3))}
+.lb-body{padding:24px}
+.lb-cat{font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:6px}
+.lb-body h2{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:600;color:var(--navy);margin-bottom:8px}
+.lb-body p{font-size:14px;color:var(--mid);line-height:1.8}
+.lb-meta{display:flex;gap:16px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border);flex-wrap:wrap;font-size:12px;color:var(--mid)}
+.lb-close{position:fixed;top:18px;right:20px;width:38px;height:38px;border-radius:50%;background:rgba(255,255,255,.15);border:none;color:#fff;font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .25s;z-index:1}
+.lb-close:hover{background:var(--gold);color:var(--navy)}
+
+/* EMPTY */
+.empty{text-align:center;padding:50px 20px;background:#fff;border-radius:var(--rl);border:2px dashed var(--border)}
+.empty-ic{font-size:40px;margin-bottom:10px}
+.empty h3{font-size:17px;font-weight:600;color:var(--navy);margin-bottom:5px}
+.empty p{font-size:13px;color:var(--mid)}
+
+/* LOADING */
+.loading{text-align:center;padding:30px;color:var(--muted);font-size:13px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{width:20px;height:20px;border:2px solid var(--border);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 10px}
+
+/* SIDEBAR OVERLAY */
+.sb-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199;display:none;backdrop-filter:blur(2px)}
+.sb-ov.on{display:block}
+
+@media(max-width:1100px){.proj-grid{grid-template-columns:1fr 1fr}.cards-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){.sb{transform:translateX(-100%)}.sb.open{transform:translateX(0)}.tb{left:0}.main{margin-left:0}.tb-hbg{display:flex}.proj-grid{grid-template-columns:1fr}.cards-row{grid-template-columns:1fr 1fr}.pg{padding:14px}}
+@media(max-width:500px){.cards-row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<div class="guard" id="guard"><div style="font-size:40px">🔒</div><p>Please <a href="member-login.html">sign in</a> to access the member portal.</p></div>
+<div class="sb-ov" id="sbOv" onclick="closeSb()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sb" id="sb">
+  <div class="sb-top">
+    <div class="sb-logo"><img src="leo-logo.png" alt="Leo" onerror="this.style.display='none'"></div>
+    <div class="sb-info"><strong>Leo Club of Contai</strong><span>Member Portal</span></div>
+  </div>
+  <div class="sb-user">
+    <div class="sb-av" id="sbAv">LM</div>
+    <div><div class="sb-uname" id="sbName">Leo Member</div><div class="sb-urole" id="sbRole">Member</div></div>
+  </div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Main</div>
+    <button class="sbl act" data-pg="dashboard" onclick="go('dashboard')"><span class="ic">🏠</span>Dashboard</button>
+    <button class="sbl" data-pg="upload" onclick="go('upload')"><span class="ic">📤</span>Upload Project</button>
+    <button class="sbl" data-pg="myprojects" onclick="go('myprojects')"><span class="ic">📁</span>My Projects</button>
+    <div class="sb-sec">Club</div>
+    <button class="sbl" data-pg="allprojects" onclick="go('allprojects')"><span class="ic">🗂️</span>All Projects</button>
+    <button class="sbl" data-pg="events" onclick="go('events')"><span class="ic">📅</span>Events<span class="ct" id="ev-ct">0</span></button>
+    <button class="sbl" data-pg="polls" onclick="go('polls')"><span class="ic">🗳️</span>Polls</button>
+    <button class="sbl" data-pg="announcements" onclick="go('announcements')"><span class="ic">📢</span>Announcements</button>
+    <button class="sbl" data-pg="leaderboard" onclick="go('leaderboard')"><span class="ic">🏆</span>Leaderboard</button>
+    <div class="sb-sec">Account</div>
+    <button class="sbl" data-pg="profile" onclick="go('profile')"><span class="ic">👤</span>My Profile</button>
+  </nav>
+  <div class="sb-foot">
+    <a href="index.html" style="display:flex;align-items:center;gap:6px;color:rgba(255,255,255,.3);font-size:12px;text-decoration:none;margin-bottom:10px;transition:color .2s" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">← Back to website</a>
+    <button class="sb-logout" onclick="doLogout()">🚪 Sign Out</button>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<header class="tb">
+  <div class="tb-l">
+    <button class="tb-hbg" onclick="toggleSb()">☰</button>
+    <div class="tb-title" id="tbTitle">Dashboard</div>
+  </div>
+  <div class="tb-r">
+    <button class="tb-btn" onclick="window.open('index.html','_blank')">🌐 Website</button>
+    <button class="tb-btn g" onclick="go('upload')">+ Upload</button>
+    <div class="tb-av" id="tbAv" onclick="go('profile')">LM</div>
+  </div>
+</header>
+
+<main class="main">
+
+<!-- DASHBOARD -->
+<div class="pg act" id="pg-dashboard">
+  <div class="wh">
+    <div class="wh-grid"></div>
+    <div class="wh-inner">
+      <div><h1>Welcome, <em id="wName">Leo Member</em> 👋</h1><p>Here's what's happening in Leo Club of Contai</p></div>
+      <div class="wh-stats">
+        <div class="wh-stat"><div class="n" id="w-myp">0</div><div class="l">My Projects</div></div>
+        <div class="wh-stat"><div class="n" id="w-allp">0</div><div class="l">Total Projects</div></div>
+        <div class="wh-stat"><div class="n" id="w-evs">0</div><div class="l">Events</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="cards-row">
+    <div class="sc c1" onclick="go('allprojects')"><div class="sc-ic c1">🩸</div><div class="sc-n" id="d-blood">0</div><div class="sc-l">Blood Donation</div></div>
+    <div class="sc c2" onclick="go('allprojects')"><div class="sc-ic c2">🌿</div><div class="sc-n" id="d-env">0</div><div class="sc-l">Environment</div></div>
+    <div class="sc c3" onclick="go('allprojects')"><div class="sc-ic c3">📚</div><div class="sc-n" id="d-edu">0</div><div class="sc-l">Education</div></div>
+    <div class="sc c4" onclick="go('allprojects')"><div class="sc-ic c4">🗂️</div><div class="sc-n" id="d-total">0</div><div class="sc-l">Total Projects</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div>
+      <div class="sec-hd"><h2>Recent <em>Projects</em></h2><button class="btn btn-out btn-sm" onclick="go('allprojects')">View all</button></div>
+      <div id="d-proj-list"></div>
+    </div>
+    <div>
+      <div class="sec-hd"><h2>Latest <em>Announcements</em></h2><button class="btn btn-out btn-sm" onclick="go('announcements')">View all</button></div>
+      <div id="d-ann-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- UPLOAD -->
+<div class="pg" id="pg-upload">
+  <div class="sec-hd"><h2>Upload <em>New Project</em></h2></div>
+  <div class="card"><div class="card-hd"><h3>Share a <em>Project</em></h3></div>
+  <div class="card-body">
+    <div id="up-toast" class="toast"></div>
+    <div class="fgrid">
+      <div class="fg"><label>Project Title *</label><input class="fi" type="text" id="up-title" placeholder="e.g. Blood Donation Camp 2025"></div>
+      <div class="fg"><label>Event Date *</label><input class="fi" type="date" id="up-date"></div>
+      <div class="fg full"><label>Service Category *</label>
+        <div class="cat-chips">
+          <button class="cc on" data-cat="blood" onclick="selCat(this)">🩸 Blood Donation</button>
+          <button class="cc" data-cat="environment" onclick="selCat(this)">🌿 Environment</button>
+          <button class="cc" data-cat="education" onclick="selCat(this)">📚 Education</button>
+          <button class="cc" data-cat="sports" onclick="selCat(this)">⚽ Youth Sports</button>
+          <button class="cc" data-cat="donation" onclick="selCat(this)">🤲 Donation Drives</button>
+          <button class="cc" data-cat="community" onclick="selCat(this)">🤝 Community</button>
+        </div>
+        <input type="hidden" id="up-cat" value="blood">
+      </div>
+      <div class="fg full"><label>Description *</label><textarea class="fi" id="up-desc" rows="4" placeholder="Describe what was done, participants, achievements…"></textarea></div>
+      <div class="fg"><label>Location</label><input class="fi" type="text" id="up-loc" placeholder="e.g. Contai Municipality Hall"></div>
+      <div class="fg"><label>Badge (optional)</label><input class="fi" type="text" id="up-badge" placeholder="e.g. Featured, Impact"></div>
+      <div class="fg full"><label>Project Photo</label>
+        <div class="img-drop">
+          <input type="file" id="up-file" accept="image/*" onchange="previewFile(event,'up-prev-img','up-prev')">
+          <div class="img-drop-ic">📷</div><div class="img-drop-tx">Upload from device — stored in Firebase Storage</div>
+        </div>
+        <div class="upload-progress" id="up-prog"><div class="upload-progress-bar" id="up-prog-bar"></div></div>
+        <div class="img-prev" id="up-prev"><img id="up-prev-img" src="" alt=""></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px">
+      <button class="btn btn-gold btn-lg" onclick="submitProject()">✓ Publish Project</button>
+      <button class="btn btn-out" onclick="resetUp()">Reset</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- MY PROJECTS -->
+<div class="pg" id="pg-myprojects">
+  <div class="sec-hd"><h2>My <em>Projects</em></h2><button class="btn btn-gold btn-sm" onclick="go('upload')">+ Upload New</button></div>
+  <div id="my-proj-grid" class="proj-grid"></div>
+  <div id="my-proj-empty" class="empty" style="display:none"><div class="empty-ic">📁</div><h3>No projects yet</h3><p>Upload your first project to see it here.</p></div>
+</div>
+
+<!-- ALL PROJECTS -->
+<div class="pg" id="pg-allprojects">
+  <div class="sec-hd">
+    <h2>All <em>Projects</em></h2>
+    <select class="fi" id="ap-filter" onchange="renderAllProjects()" style="width:auto;font-size:12px;padding:7px 11px">
+      <option value="">All Categories</option>
+      <option value="blood">🩸 Blood Donation</option><option value="environment">🌿 Environment</option>
+      <option value="education">📚 Education</option><option value="sports">⚽ Youth Sports</option>
+      <option value="donation">🤲 Donation Drives</option><option value="community">🤝 Community</option>
+    </select>
+  </div>
+  <div id="all-proj-grid" class="proj-grid"></div>
+  <div id="all-proj-empty" class="empty" style="display:none"><div class="empty-ic">🗂️</div><h3>No projects found</h3><p>Try a different category filter.</p></div>
+</div>
+
+<!-- EVENTS -->
+<div class="pg" id="pg-events">
+  <div class="sec-hd"><h2>Upcoming <em>Events</em></h2></div>
+  <div id="ev-list"></div>
+</div>
+
+<!-- POLLS -->
+<div class="pg" id="pg-polls">
+  <div class="sec-hd"><h2>Live <em>Polls</em></h2></div>
+  <div id="poll-list" style="display:grid;grid-template-columns:1fr 1fr;gap:14px"></div>
+</div>
+
+<!-- ANNOUNCEMENTS -->
+<div class="pg" id="pg-announcements">
+  <div class="sec-hd"><h2>Announcements <em>&amp; Notices</em></h2></div>
+  <div id="ann-list"></div>
+</div>
+
+<!-- LEADERBOARD -->
+<div class="pg" id="pg-leaderboard">
+  <div class="sec-hd"><h2>Service <em>Leaderboard</em></h2></div>
+  <div class="card"><div id="lb-list"></div></div>
+</div>
+
+<!-- PROFILE -->
+<div class="pg" id="pg-profile">
+  <div class="sec-hd"><h2>My <em>Profile</em></h2></div>
+  <div style="display:grid;grid-template-columns:300px 1fr;gap:16px;max-width:820px">
+    <div class="card" style="text-align:center">
+      <div class="card-body">
+        <div style="width:80px;height:80px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy3));border:3px solid var(--bord-s);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:700;color:var(--gold);margin:0 auto 14px;font-family:'Cormorant Garamond',serif" id="prof-av">LM</div>
+        <div style="font-size:18px;font-weight:700;color:var(--navy);font-family:'Cormorant Garamond',serif" id="prof-name">Leo Member</div>
+        <div style="font-size:11px;color:var(--gold);text-transform:uppercase;letter-spacing:.08em;font-weight:600;margin:4px 0 12px" id="prof-role">Member</div>
+        <div style="background:var(--gold-pale);border:1px solid var(--bord-s);border-radius:10px;padding:10px">
+          <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em">Projects Uploaded</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:32px;font-weight:700;color:var(--gold)" id="prof-proj">0</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);margin-top:10px" id="prof-email"></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-body">
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy);margin-bottom:16px">Club Information</div>
+      <div style="display:flex;flex-direction:column;gap:10px;font-size:14px">
+        <div style="display:flex;gap:10px"><span style="color:var(--mid);min-width:100px">Club</span><strong>Leo Club of Contai</strong></div>
+        <div style="display:flex;gap:10px"><span style="color:var(--mid);min-width:100px">Sponsor</span><strong>Lions Club of Contai</strong></div>
+        <div style="display:flex;gap:10px"><span style="color:var(--mid);min-width:100px">Founded</span><strong>14 April 1980</strong></div>
+        <div style="display:flex;gap:10px"><span style="color:var(--mid);min-width:100px">Address</span><strong>Saraswatitala, Contai, W.B. 721401</strong></div>
+        <div style="display:flex;gap:10px"><span style="color:var(--mid);min-width:100px">Phone</span><strong>+91 8710049344</strong></div>
+        <div style="display:flex;gap:10px"><span style="color:var(--mid);min-width:100px">Email</span><strong>info@leocontai.org</strong></div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div class="lb" id="lb" onclick="if(event.target===this)closeLb()">
+  <button class="lb-close" onclick="closeLb()">✕</button>
+  <div class="lb-inner">
+    <div class="lb-img" id="lb-img"></div>
+    <div class="lb-body">
+      <div class="lb-cat" id="lb-cat"></div>
+      <h2 id="lb-title"></h2>
+      <p id="lb-desc"></p>
+      <div class="lb-meta">
+        <span>📅 <strong id="lb-date"></strong></span>
+        <span>👤 <strong id="lb-member"></strong></span>
+        <span id="lb-loc-wrap" style="display:none">📍 <strong id="lb-loc"></strong></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp }   from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDoc, getDocs, addDoc, updateDoc, query, orderBy, where, serverTimestamp, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+const app  = initializeApp(window.FIREBASE_CONFIG);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+const st   = getStorage(app);
+
+// ── AUTH ──
+let CU = null;
+const sess = sessionStorage.getItem('leo_user');
+if(!sess){ document.getElementById('guard').classList.add('on'); }
+else {
+  CU = JSON.parse(sess);
+  document.getElementById('sbAv').textContent  = CU.initials||'LM';
+  document.getElementById('sbName').textContent = CU.name||'Leo Member';
+  document.getElementById('sbRole').textContent = CU.role==='admin'?'Administrator':'Member';
+  document.getElementById('tbAv').textContent   = CU.initials||'LM';
+  document.getElementById('wName').textContent  = (CU.name||'').replace('Leo ','');
+  // Show admin button if admin
+  if(CU.role==='admin'){
+    const ab=document.createElement('a');ab.href='admin-panel.html';
+    ab.className='tb-btn g';ab.style.marginRight='4px';ab.textContent='⚙️ Admin';
+    document.getElementById('tbAv').parentElement.insertBefore(ab,document.getElementById('tbAv'));
+  }
+}
+
+window.doLogout = async () => { await signOut(auth); sessionStorage.removeItem('leo_user'); window.location.href='member-login.html'; };
+
+// ── CATEGORY INFO ──
+const CAT = {
+  blood:{l:'Blood Donation',e:'🩸',col:'#e74c3c'},environment:{l:'Environment',e:'🌿',col:'#27ae60'},
+  education:{l:'Education',e:'📚',col:'#3b82f6'},sports:{l:'Youth Sports',e:'⚽',col:'#f59e0b'},
+  donation:{l:'Donation',e:'🤲',col:'#8b5cf6'},community:{l:'Community',e:'🤝',col:'#06b6d4'},
+};
+
+// ── HELPERS ──
+const fmtDate = d => { if(!d)return''; try{return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}catch{return d}};
+const fmtShort = d => { if(!d)return{day:'?',mon:'???'}; try{const dt=new Date(d+'T00:00:00');return{day:dt.getDate(),mon:dt.toLocaleString('en-IN',{month:'short'}).toUpperCase()}}catch{return{day:'?',mon:'???'}}};
+const ini = n => (n||'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?';
+const toast = (id,msg,ok=true) => { const t=document.getElementById(id);if(!t)return;t.className='toast '+(ok?'ok':'err');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',3500); };
+const showLoading = id => { const el=document.getElementById(id);if(el)el.innerHTML='<div class="loading"><div class="spin"></div>Loading…</div>'; };
+
+// ── NAV ──
+const PG_TITLES={dashboard:'Dashboard',upload:'Upload Project',myprojects:'My Projects',allprojects:'All Projects',events:'Events',polls:'Live Polls',announcements:'Announcements',leaderboard:'Leaderboard',profile:'My Profile'};
+window.go = id => {
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.sbl').forEach(l=>l.classList.remove('act'));
+  const pg=document.getElementById('pg-'+id);if(pg)pg.classList.add('act');
+  document.querySelectorAll(`[data-pg="${id}"]`).forEach(l=>l.classList.add('act'));
+  document.getElementById('tbTitle').textContent=PG_TITLES[id]||id;
+  closeSb(); window.scrollTo(0,0);
+  const map={dashboard:renderDashboard,myprojects:renderMyProjects,allprojects:renderAllProjects,events:renderEvents,polls:renderPolls,announcements:renderAnn,leaderboard:renderLeaderboard,profile:renderProfile};
+  if(map[id]) map[id]();
+};
+window.toggleSb = () => {document.getElementById('sb').classList.toggle('open');document.getElementById('sbOv').classList.toggle('on');};
+window.closeSb  = () => {document.getElementById('sb').classList.remove('open');document.getElementById('sbOv').classList.remove('on');};
+
+// ── PROJECT CARD ──
+const projCard = (id,v) => {
+  const ci=CAT[v.cat]||{e:'📁',l:'Other',col:'#666'};
+  return `<div class="pcard" onclick="openLb('${id}')">
+    <div class="pc-img">
+      ${v.imageUrl?`<img src="${v.imageUrl}" alt="${v.title}" onerror="this.style.display='none'">`:''}
+      <div class="pc-ph" style="${v.imageUrl?'display:none':''}">${ci.e}</div>
+      <div class="pc-ov"></div>
+      <div class="pc-cat" style="background:${ci.col}88">${ci.e} ${ci.l}</div>
+      <div class="pc-date">${fmtDate(v.date)}</div>
+    </div>
+    <div class="pc-body">
+      <div class="pc-cat-tag">${ci.e} ${ci.l}</div>
+      <h3>${v.title||''}</h3>
+      <p>${v.description||''}</p>
+    </div>
+    <div class="pc-footer">
+      <div class="pc-av">${ini(v.member)}</div>
+      <span class="pc-aname">${v.member||'Leo Member'}</span>
+    </div>
+  </div>`;
+};
+
+// ── DASHBOARD ──
+const renderDashboard = async () => {
+  try {
+    const snap = await getDocs(query(collection(db,'projects'),orderBy('createdAt','desc')));
+    const all = snap.docs;
+    const mine = all.filter(d=>d.data().uploadedBy===CU.uid||d.data().member===CU.name);
+    document.getElementById('w-myp').textContent = mine.length;
+    document.getElementById('w-allp').textContent = all.length;
+    document.getElementById('d-blood').textContent = all.filter(d=>d.data().cat==='blood').length;
+    document.getElementById('d-env').textContent   = all.filter(d=>d.data().cat==='environment').length;
+    document.getElementById('d-edu').textContent   = all.filter(d=>d.data().cat==='education').length;
+    document.getElementById('d-total').textContent  = all.length;
+    // Recent projects
+    const recentProj = all.slice(0,3);
+    document.getElementById('d-proj-list').innerHTML = recentProj.length
+      ? recentProj.map(d=>projCard(d.id,d.data())).join('')
+      : '<div class="empty"><div class="empty-ic">📁</div><h3>No projects yet</h3></div>';
+  } catch(e){console.error(e)}
+  // Events count
+  try {
+    const evSnap = await getDocs(collection(db,'events'));
+    document.getElementById('w-evs').textContent = evSnap.size;
+    document.getElementById('ev-ct').textContent = evSnap.size;
+  } catch{}
+  // Announcements
+  try {
+    const annSnap = await getDocs(query(collection(db,'announcements'),orderBy('createdAt','desc')));
+    const tMap = {info:'badge-blue',alert:'badge-red',success:'badge-green',gold:'badge-gold'};
+    document.getElementById('d-ann-list').innerHTML = annSnap.docs.slice(0,3).map(d=>{
+      const v=d.data();
+      return `<div class="ann-card ${v.type||'info'}" style="margin-bottom:8px">
+        <div class="ann-top"><span class="ann-title">${v.title}</span><span class="ann-badge ${v.type||'info'}">${v.type}</span></div>
+        <div class="ann-body">${(v.body||'').substring(0,100)}…</div>
+      </div>`;
+    }).join('') || '<div class="empty"><div class="empty-ic">📢</div><h3>No announcements</h3></div>';
+  } catch{}
+};
+
+// ── MY PROJECTS ──
+const renderMyProjects = async () => {
+  showLoading('my-proj-grid');
+  try {
+    const snap = await getDocs(query(collection(db,'projects'),orderBy('createdAt','desc')));
+    const mine = snap.docs.filter(d=>d.data().uploadedBy===CU.uid||d.data().member===CU.name);
+    const grid = document.getElementById('my-proj-grid');
+    const empty = document.getElementById('my-proj-empty');
+    if(!mine.length){grid.innerHTML='';empty.style.display='block';return;}
+    empty.style.display='none';
+    grid.innerHTML = mine.map(d=>projCard(d.id,d.data())).join('');
+  } catch(e){console.error(e)}
+};
+
+// ── ALL PROJECTS ──
+window.renderAllProjects = async () => {
+  showLoading('all-proj-grid');
+  const cat = document.getElementById('ap-filter')?.value||'';
+  try {
+    const snap = await getDocs(query(collection(db,'projects'),orderBy('createdAt','desc')));
+    let docs = snap.docs;
+    if(cat) docs = docs.filter(d=>d.data().cat===cat);
+    const grid = document.getElementById('all-proj-grid');
+    const empty = document.getElementById('all-proj-empty');
+    if(!docs.length){grid.innerHTML='';empty.style.display='block';return;}
+    empty.style.display='none';
+    grid.innerHTML = docs.map(d=>projCard(d.id,d.data())).join('');
+  } catch(e){console.error(e)}
+};
+
+// ── LIGHTBOX ──
+const projCache = {};
+window.openLb = async id => {
+  let v = projCache[id];
+  if(!v){
+    const snap = await getDoc(doc(db,'projects',id));
+    if(!snap.exists()) return;
+    v = snap.data(); projCache[id]=v;
+  }
+  const ci=CAT[v.cat]||{e:'📁',l:'Other'};
+  document.getElementById('lb-img').innerHTML = v.imageUrl
+    ? `<img src="${v.imageUrl}" alt="${v.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.background='linear-gradient(135deg,#0B1730,#1C2E54)'">`
+    : `<div class="lb-img-ph">${ci.e}</div>`;
+  document.getElementById('lb-cat').textContent = `${ci.e} ${ci.l}`;
+  document.getElementById('lb-title').textContent = v.title||'';
+  document.getElementById('lb-desc').textContent  = v.description||'';
+  document.getElementById('lb-date').textContent  = fmtDate(v.date);
+  document.getElementById('lb-member').textContent = v.member||'Leo Member';
+  const locW = document.getElementById('lb-loc-wrap');
+  if(v.location){locW.style.display='inline';document.getElementById('lb-loc').textContent=v.location;}else{locW.style.display='none';}
+  document.getElementById('lb').classList.add('open');
+  document.body.style.overflow='hidden';
+};
+window.closeLb = () => {document.getElementById('lb').classList.remove('open');document.body.style.overflow='';};
+document.addEventListener('keydown',e=>{if(e.key==='Escape')window.closeLb();});
+
+// ── UPLOAD PROJECT ──
+let selCatVal='blood', upFileObj=null;
+window.selCat = btn => { document.querySelectorAll('.cc').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); selCatVal=btn.dataset.cat; };
+window.previewFile = (e,imgId,wrapId) => {
+  const f=e.target.files[0]; if(!f) return;
+  if(imgId==='up-prev-img') upFileObj=f;
+  const r=new FileReader(); r.onload=ev=>{ document.getElementById(imgId).src=ev.target.result; document.getElementById(wrapId).style.display='block'; }; r.readAsDataURL(f);
+};
+
+const uploadFile = (file,path,barId,wrapId) => new Promise((res,rej)=>{
+  const wrap=document.getElementById(wrapId); const bar=document.getElementById(barId);
+  if(wrap) wrap.style.display='block';
+  const task = uploadBytesResumable(sRef(st,path),file);
+  task.on('state_changed', s=>{ if(bar) bar.style.width=(s.bytesTransferred/s.totalBytes*100)+'%'; },rej,async()=>{ if(wrap) wrap.style.display='none'; res(await getDownloadURL(task.snapshot.ref)); });
+});
+
+window.submitProject = async () => {
+  const title=document.getElementById('up-title').value.trim();
+  const date=document.getElementById('up-date').value;
+  const desc=document.getElementById('up-desc').value.trim();
+  if(!title||!date||!desc){toast('up-toast','Please fill Title, Date, and Description.',false);return;}
+  const btn=document.querySelector('#pg-upload .btn-gold');
+  btn.textContent='Saving…'; btn.style.opacity='.7'; btn.style.pointerEvents='none';
+  try {
+    let imageUrl='';
+    if(upFileObj) imageUrl = await uploadFile(upFileObj,`projects/${Date.now()}_${upFileObj.name}`,'up-prog-bar','up-prog');
+    await addDoc(collection(db,'projects'),{
+      title,date,description:desc,cat:selCatVal,
+      badge:document.getElementById('up-badge').value.trim(),
+      location:document.getElementById('up-loc').value.trim(),
+      member:CU.name||'Leo Member', uploadedBy:CU.uid,
+      imageUrl, createdAt:serverTimestamp()
+    });
+    toast('up-toast',`✅ "${title}" published!`);
+    resetUp();
+    setTimeout(()=>go('myprojects'),1500);
+  } catch(e){toast('up-toast','Error: '+e.message,false);}
+  btn.textContent='✓ Publish Project'; btn.style.opacity=''; btn.style.pointerEvents='';
+};
+
+window.resetUp = () => {
+  ['up-title','up-date','up-desc','up-badge','up-loc'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  document.getElementById('up-file').value='';
+  document.getElementById('up-prev').style.display='none';
+  document.querySelectorAll('.cc').forEach(b=>b.classList.remove('on'));
+  document.querySelector('[data-cat="blood"]').classList.add('on');
+  selCatVal='blood'; upFileObj=null;
+};
+
+// ── EVENTS ──
+const renderEvents = async () => {
+  showLoading('ev-list');
+  try {
+    const snap = await getDocs(query(collection(db,'events'),orderBy('date','asc')));
+    const list = document.getElementById('ev-list');
+    if(!snap.size){list.innerHTML='<div class="empty"><div class="empty-ic">📅</div><h3>No events yet</h3><p>Check back soon for upcoming events.</p></div>';return;}
+    const stMap = {upcoming:'up',open:'open',soon:'soon'};
+    list.innerHTML = snap.docs.map(d=>{
+      const v=d.data(); const ci=CAT[v.cat]||{e:'📋',l:'Other',col:'#666'};
+      const dt=fmtShort(v.date);
+      const uid2=CU.uid;
+      const myVote=(v.rsvp||{})[uid2];
+      return `<div class="ev-card">
+        <div class="ev-date"><div class="ev-day">${dt.day}</div><div class="ev-mon">${dt.mon}</div></div>
+        <div class="ev-body">
+          <div class="ev-cat" style="color:${ci.col}">${ci.e} ${ci.l}</div>
+          <div class="ev-title">${v.title}</div>
+          <div class="ev-meta">
+            ${v.time?`<span>🕐 ${v.time}</span>`:''}
+            ${v.location?`<span>📍 ${v.location}</span>`:''}
+            <span>👥 ${Object.values(v.rsvp||{}).filter(x=>x==='yes').length} attending</span>
+          </div>
+          ${v.description?`<div style="font-size:12px;color:var(--mid);margin-top:6px">${v.description}</div>`:''}
+        </div>
+        <div class="ev-right">
+          <span class="ev-st ${stMap[v.status]||'up'}">${v.status}</span>
+          <div>
+            <div class="rsvp-btns">
+              <button class="rsvp-btn rsvp-y ${myVote==='yes'?'act':''}" onclick="rsvp('${d.id}','yes',this)">✓ Join</button>
+              <button class="rsvp-btn rsvp-n ${myVote==='no'?'act':''}" onclick="rsvp('${d.id}','no',this)">✗ Skip</button>
+            </div>
+            ${myVote?`<div style="font-size:10px;color:var(--gold);text-align:center;margin-top:4px">${myVote==='yes'?'Joining ✓':'Skipping ✗'}</div>`:''}
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){console.error(e)}
+};
+
+window.rsvp = async (evId,vote,btn) => {
+  try {
+    const evRef = doc(db,'events',evId);
+    const snap = await getDoc(evRef);
+    if(!snap.exists()) return;
+    const rsvp = snap.data().rsvp||{};
+    if(rsvp[CU.uid]===vote) delete rsvp[CU.uid]; else rsvp[CU.uid]=vote;
+    await updateDoc(evRef,{rsvp});
+    renderEvents();
+  } catch(e){console.error(e)}
+};
+
+// ── POLLS ──
+const renderPolls = async () => {
+  const list = document.getElementById('poll-list');
+  list.innerHTML = '<div class="loading" style="grid-column:1/-1"><div class="spin"></div>Loading…</div>';
+  try {
+    const snap = await getDocs(query(collection(db,'polls'),orderBy('createdAt','desc')));
+    const userVotes = JSON.parse(localStorage.getItem('lcp_votes_'+CU.uid)||'{}');
+    if(!snap.size){list.innerHTML='<div class="empty" style="grid-column:1/-1"><div class="empty-ic">🗳️</div><h3>No polls yet</h3></div>';return;}
+    list.innerHTML = snap.docs.map(d=>{
+      const v=d.data(); const myVote=userVotes[d.id];
+      const total=Object.values(v.votes||{}).reduce((a,b)=>a+b,0);
+      const stMap={active:'pb-act',hot:'pb-hot',closed:'pb-cls'};
+      const opts=(v.opts||[]).map(o=>{
+        const cnt=(v.votes||{})[o.k]||0;
+        const pct=total?Math.round(cnt/total*100):0;
+        return `<label class="poll-opt">
+          <input type="radio" name="poll-${d.id}" value="${o.k}" ${myVote===o.k?'checked':''} onchange="castVote('${d.id}','${o.k}')">
+          <div class="poll-opt-inner">
+            <div class="poll-bar" style="width:${myVote?pct:0}%"></div>
+            <span class="poll-txt">${o.l}</span>
+            ${myVote?`<span class="poll-pct">${pct}%</span>`:''}
+          </div>
+        </label>`;
+      }).join('');
+      return `<div class="poll-card">
+        <div class="poll-hd"><div class="poll-q">${v.question}</div><span class="poll-badge ${stMap[v.status]||'pb-act'}">${v.status}</span></div>
+        ${v.event?`<div class="poll-meta">📅 ${v.event}</div>`:''}
+        <div class="poll-opts">${opts}</div>
+        <div class="poll-footer"><span>📊 ${total} votes ${myVote?'<strong style="color:var(--gold)">✓ Voted</strong>':''}</span></div>
+      </div>`;
+    }).join('');
+  } catch(e){console.error(e)}
+};
+
+window.castVote = async (pollId,optKey) => {
+  const snap = await getDoc(doc(db,'polls',pollId));
+  if(!snap.exists()||snap.data().status==='closed'){alert('This poll is closed.');return;}
+  const userVotesKey = 'lcp_votes_'+CU.uid;
+  const userVotes = JSON.parse(localStorage.getItem(userVotesKey)||'{}');
+  const prev = userVotes[pollId];
+  const votes = {...snap.data().votes};
+  if(prev&&votes[prev]>0) votes[prev]--;
+  if(optKey!==prev){ votes[optKey]=(votes[optKey]||0)+1; userVotes[pollId]=optKey; }
+  else delete userVotes[pollId];
+  await updateDoc(doc(db,'polls',pollId),{votes});
+  localStorage.setItem(userVotesKey,JSON.stringify(userVotes));
+  renderPolls();
+};
+
+// ── ANNOUNCEMENTS ──
+const renderAnn = async () => {
+  showLoading('ann-list');
+  try {
+    const snap = await getDocs(query(collection(db,'announcements'),orderBy('createdAt','desc')));
+    const tMap = {info:'badge-blue',alert:'badge-red',success:'badge-green',gold:'badge-gold'};
+    document.getElementById('ann-list').innerHTML = snap.docs.map(d=>{
+      const v=d.data();
+      return `<div class="ann-card ${v.type||'info'}">
+        <div class="ann-top"><span class="ann-title">${v.title}</span><span class="ann-badge ${v.type||'info'}">${v.type==='info'?'Info':v.type==='alert'?'⚠ Alert':v.type==='success'?'✓ Update':'★ Important'}</span></div>
+        <div class="ann-body">${v.body||''}</div>
+        <div class="ann-footer"><span>📅 ${v.date||''}</span><span>👤 ${v.author||'Admin'}</span></div>
+      </div>`;
+    }).join('') || '<div class="empty"><div class="empty-ic">📢</div><h3>No announcements yet</h3></div>';
+  } catch(e){console.error(e)}
+};
+
+// ── LEADERBOARD ──
+const renderLeaderboard = async () => {
+  showLoading('lb-list');
+  try {
+    const [mSnap,pSnap] = await Promise.all([getDocs(collection(db,'members')),getDocs(collection(db,'projects'))]);
+    const projCounts = {};
+    pSnap.docs.forEach(d=>{ const m=d.data().member||''; projCounts[m]=(projCounts[m]||0)+1; });
+    const members = mSnap.docs.map(d=>({...d.data(),id:d.id}))
+      .sort((a,b)=>((projCounts[b.name]||0)*10+50)-(( projCounts[a.name]||0)*10+50));
+    const ranks=['r1','r2','r3'];
+    const medals=['🥇','🥈','🥉'];
+    document.getElementById('lb-list').innerHTML = members.slice(0,10).map((m,i)=>`
+      <div class="lb-row">
+        <div class="lb-rank ${ranks[i]||'rn'}">${i<3?medals[i]:i+1}</div>
+        <div class="lb-av">${m.initials||ini(m.name)}</div>
+        <div class="lb-info"><div class="lb-name">${m.name}</div><div class="lb-role">${m.role}</div></div>
+        <div class="lb-pts"><div class="n">${(projCounts[m.name]||0)*10+50}</div><div class="l">Points</div></div>
+      </div>`).join('') || '<p style="text-align:center;padding:20px;color:var(--muted)">No members found.</p>';
+  } catch(e){console.error(e)}
+};
+
+// ── PROFILE ──
+const renderProfile = async () => {
+  document.getElementById('prof-av').textContent = CU.initials||'LM';
+  document.getElementById('prof-name').textContent = CU.name||'Leo Member';
+  document.getElementById('prof-role').textContent = CU.role==='admin'?'Administrator':'Member';
+  document.getElementById('prof-email').textContent = CU.email||'';
+  try {
+    const snap = await getDocs(query(collection(db,'projects'),where('uploadedBy','==',CU.uid)));
+    document.getElementById('prof-proj').textContent = snap.size;
+  } catch{}
+};
+
+// ── BOOT ──
+if(CU) renderDashboard();
+</script>
+</body>
+</html>

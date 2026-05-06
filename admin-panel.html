@@ -1,0 +1,1148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — Leo Club of Contai</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400;1,600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="firebase-config.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#BF8C3C;--gold-b:#E2B060;--gold-pale:#FDF8EF;
+  --navy:#0B1730;--navy2:#142141;--navy3:#1C2E54;
+  --cream:#F4F1EB;--white:#fff;
+  --txt:#1A1A2E;--mid:#5C6478;--muted:#9AA0B0;
+  --border:#E8E3D8;--bord-s:#D4C9A8;
+  --red:#EF4444;--green:#22C55E;--blue:#3B82F6;--amber:#F59E0B;
+  --sidebar:252px;--top:60px;
+  --sh0:0 1px 3px rgba(0,0,0,.05);--sh1:0 4px 16px rgba(11,23,48,.07);
+  --sh2:0 12px 40px rgba(11,23,48,.11);--shg:0 6px 24px rgba(191,140,60,.2);
+  --r:8px;--rm:12px;--rl:16px;
+  --ease:cubic-bezier(.4,0,.2,1);--spring:cubic-bezier(.34,1.56,.64,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--cream);color:var(--txt);overflow-x:hidden}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--bord-s);border-radius:3px}
+.guard{display:none;position:fixed;inset:0;background:var(--navy);z-index:9999;align-items:center;justify-content:center;flex-direction:column;gap:12px}
+.guard.on{display:flex}.guard p{color:rgba(255,255,255,.5);font-size:15px}.guard a{color:#E2B060;text-decoration:none;font-weight:600}
+.sb{position:fixed;top:0;left:0;bottom:0;width:var(--sidebar);background:var(--navy);z-index:200;display:flex;flex-direction:column;transition:transform .35s var(--ease);overflow-y:auto}
+.sb-top{padding:18px 20px 14px;border-bottom:1px solid rgba(255,255,255,.07);display:flex;align-items:center;gap:11px;flex-shrink:0}
+.sb-logo{width:38px;height:38px;border-radius:50%;background:#fff;padding:2px;overflow:hidden;flex-shrink:0}
+.sb-logo img{width:100%;height:100%;object-fit:contain;border-radius:50%}
+.sb-info strong{display:block;font-size:13px;font-weight:600;color:#fff;line-height:1.2}
+.sb-info span{font-size:10px;color:rgba(191,140,60,.8);letter-spacing:.08em;text-transform:uppercase}
+.sb-badge{margin:10px 18px;background:rgba(191,140,60,.12);border:1px solid rgba(191,140,60,.22);border-radius:10px;padding:9px 13px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sb-badge .t{font-size:12px;color:rgba(255,255,255,.55)}.sb-badge .t strong{display:block;font-size:13px;color:var(--gold-b);font-weight:600}
+.sb-nav{flex:1;padding:6px 0;overflow-y:auto}
+.sb-sec{font-size:10px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.22);font-weight:600;padding:12px 20px 4px}
+.sbl{display:flex;align-items:center;gap:9px;padding:9px 20px;color:rgba(255,255,255,.5);text-decoration:none;font-size:13px;font-weight:500;border:none;background:none;width:100%;text-align:left;cursor:pointer;border-left:3px solid transparent;transition:all .2s;font-family:inherit}
+.sbl:hover{color:rgba(255,255,255,.85);background:rgba(255,255,255,.05)}
+.sbl.act{color:#fff;background:rgba(191,140,60,.12);border-left-color:var(--gold)}
+.sbl .ic{width:18px;text-align:center;font-size:14px;flex-shrink:0}
+.sbl .ct{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:100px;min-width:18px;text-align:center}
+.sbl .ct.g{background:var(--green)}.sbl .ct.a{background:var(--amber)}
+.sb-foot{padding:12px 18px;border-top:1px solid rgba(255,255,255,.07);flex-shrink:0}
+.sb-ur{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+.sb-av{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,var(--gold),var(--gold-b));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--navy);flex-shrink:0}
+.sb-un{font-size:13px;font-weight:600;color:#fff;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-ro{font-size:10px;color:rgba(255,255,255,.35);text-transform:uppercase;letter-spacing:.06em}
+.sb-out{display:flex;align-items:center;gap:7px;color:rgba(255,255,255,.35);font-size:12px;cursor:pointer;border:none;background:none;font-family:inherit;transition:color .2s}
+.sb-out:hover{color:#f87171}
+.tb{position:fixed;top:0;left:var(--sidebar);right:0;height:var(--top);background:rgba(244,241,235,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 22px;z-index:100}
+.tb-l{display:flex;align-items:center;gap:12px}
+.tb-hbg{display:none;background:none;border:none;cursor:pointer;font-size:20px;color:var(--txt);padding:4px}
+.tb-tl{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:600;color:var(--navy)}
+.tb-tl em{font-style:italic;color:var(--gold)}
+.tb-r{display:flex;align-items:center;gap:8px}
+.tb-btn{height:36px;padding:0 13px;border-radius:var(--r);border:1px solid var(--border);background:#fff;font-family:inherit;font-size:12px;font-weight:600;color:var(--mid);cursor:pointer;transition:all .22s;display:flex;align-items:center;gap:6px}
+.tb-btn:hover{border-color:var(--bord-s);color:var(--txt)}
+.tb-btn.g{background:var(--gold);color:var(--navy);border-color:var(--gold)}.tb-btn.g:hover{background:var(--gold-b)}
+.tb-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--navy),var(--navy3));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--gold);cursor:pointer;border:2px solid var(--border)}
+.main{margin-left:var(--sidebar);padding-top:var(--top);min-height:100vh}
+.pg{padding:22px;display:none}.pg.act{display:block}
+
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;margin-bottom:20px}
+.sc{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:16px;box-shadow:var(--sh0);position:relative;overflow:hidden;transition:all .28s;cursor:default}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc.c1::before{background:linear-gradient(90deg,#e74c3c,#f39c12)}.sc.c2::before{background:linear-gradient(90deg,#27ae60,#2ecc71)}
+.sc.c3::before{background:linear-gradient(90deg,var(--gold),var(--gold-b))}.sc.c4::before{background:linear-gradient(90deg,#3b82f6,#8b5cf6)}.sc.c5::before{background:linear-gradient(90deg,#06b6d4,#3b82f6)}
+.sc:hover{transform:translateY(-2px);box-shadow:var(--sh1)}
+.sc-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sc-ic{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:17px}
+.sc-ic.c1{background:rgba(231,76,60,.1)}.sc-ic.c2{background:rgba(39,174,96,.1)}.sc-ic.c3{background:rgba(191,140,60,.1)}.sc-ic.c4{background:rgba(59,130,246,.1)}.sc-ic.c5{background:rgba(6,182,212,.1)}
+.sc-n{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:700;color:var(--navy);line-height:1;margin-bottom:2px}
+.sc-l{font-size:12px;color:var(--mid)}
+
+/* SECTION */
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.sec-hd h2{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:600;color:var(--navy)}
+.sec-hd h2 em{font-style:italic;color:var(--gold)}
+.sec-hd p{font-size:12px;color:var(--mid);margin-top:2px}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r);font-size:13px;font-weight:600;cursor:pointer;border:none;font-family:inherit;transition:all .25s var(--spring);text-decoration:none;white-space:nowrap}
+.btn-gold{background:var(--gold);color:var(--navy)}.btn-gold:hover{background:var(--gold-b);transform:translateY(-1px)}
+.btn-navy{background:var(--navy);color:#fff}.btn-navy:hover{background:var(--navy2)}
+.btn-red{background:rgba(239,68,68,.1);color:var(--red);border:1px solid rgba(239,68,68,.2)}.btn-red:hover{background:var(--red);color:#fff}
+.btn-green{background:rgba(34,197,94,.1);color:var(--green);border:1px solid rgba(34,197,94,.2)}.btn-green:hover{background:var(--green);color:#fff}
+.btn-out{background:transparent;border:1.5px solid var(--bord-s);color:var(--mid)}.btn-out:hover{border-color:var(--gold);color:var(--gold)}
+.btn-sm{padding:6px 12px;font-size:12px}
+.btn-lg{padding:12px 24px;font-size:14px;border-radius:var(--rm)}
+.btn-icon{width:32px;height:32px;padding:0;border-radius:var(--r);font-size:14px;justify-content:center}
+
+/* CARD */
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--rl);box-shadow:var(--sh0);overflow:hidden;margin-bottom:14px}
+.card-hd{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.card-hd h3{font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:600;color:var(--navy)}
+.card-hd h3 em{font-style:italic;color:var(--gold)}
+.card-hd p{font-size:12px;color:var(--mid);margin-top:1px}
+.card-body{padding:20px}
+
+/* FORM */
+.fg{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+.fg label{font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.06em;text-transform:uppercase}
+.fi{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:var(--r);font-family:inherit;font-size:13px;color:var(--txt);background:#fff;outline:none;transition:all .22s}
+.fi:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(191,140,60,.1)}
+.fi::placeholder{color:var(--muted)}
+textarea.fi{resize:vertical;min-height:80px}
+select.fi{cursor:pointer}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.fgrid.t3{grid-template-columns:1fr 1fr 1fr}
+.fg.full{grid-column:1/-1}
+.ftxt{font-size:12px;color:var(--muted);margin-top:3px}
+.toast{padding:10px 14px;border-radius:var(--r);font-size:13px;font-weight:500;margin-bottom:12px;display:none}
+.toast.ok{background:#f0fdf4;border:1px solid #bbf7d0;color:#166534}
+.toast.err{background:#fef2f2;border:1px solid #fecaca;color:#991b1b}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{background:#FAFAF7;text-align:left;padding:9px 13px;font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.06em;text-transform:uppercase;border-bottom:1px solid var(--border)}
+td{padding:11px 13px;border-bottom:1px solid var(--border);color:var(--txt);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#FAFAF7}
+.td-img{width:48px;height:36px;border-radius:6px;object-fit:cover;border:1px solid var(--border)}
+.td-ph{width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid var(--border)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600}
+.badge-gold{background:rgba(191,140,60,.12);color:var(--gold)}.badge-red{background:rgba(239,68,68,.1);color:var(--red)}
+.badge-green{background:rgba(34,197,94,.1);color:var(--green)}.badge-blue{background:rgba(59,130,246,.1);color:var(--blue)}
+.badge-gray{background:rgba(100,100,100,.1);color:var(--mid)}.badge-amber{background:rgba(245,158,11,.1);color:var(--amber)}
+
+/* IMAGE UPLOAD */
+.img-drop{border:2px dashed var(--bord-s);border-radius:var(--rm);padding:18px;text-align:center;cursor:pointer;transition:all .22s;background:#FAFAF7;position:relative}
+.img-drop:hover,.img-drop.drag{border-color:var(--gold);background:var(--gold-pale)}
+.img-drop input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.img-drop-ic{font-size:26px;margin-bottom:5px}
+.img-drop-tx{font-size:13px;color:var(--mid)}.img-drop-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.img-prev{margin-top:10px;display:none}
+.img-prev img{width:100%;height:150px;object-fit:cover;border-radius:var(--rm);border:1px solid var(--border)}
+.img-prev-circle img{width:90px;height:90px;object-fit:cover;border-radius:50%;border:3px solid var(--bord-s)}
+.upload-progress{height:4px;background:var(--border);border-radius:2px;margin-top:8px;overflow:hidden;display:none}
+.upload-progress-bar{height:100%;background:var(--gold);width:0;transition:width .3s;border-radius:2px}
+
+/* CAT CHIPS */
+.cat-chips{display:flex;flex-wrap:wrap;gap:8px}
+.cc{padding:7px 13px;border:1.5px solid var(--border);border-radius:100px;background:#fff;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--mid);transition:all .22s}
+.cc:hover{border-color:var(--bord-s);color:var(--txt)}.cc.on{border-color:var(--gold);background:var(--gold-pale);color:var(--navy)}
+
+/* MEMBER GRID */
+.mem-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+.mc{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;box-shadow:var(--sh0);transition:all .28s}
+.mc:hover{transform:translateY(-3px);box-shadow:var(--sh2);border-color:var(--bord-s)}
+.mc-photo{height:130px;overflow:hidden;position:relative;background:linear-gradient(135deg,var(--navy),var(--navy3))}
+.mc-photo img{width:100%;height:100%;object-fit:cover;object-position:top}
+.mc-initials{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:700;color:var(--gold)}
+.mc-cat-tag{position:absolute;top:8px;right:8px;font-size:9px;font-weight:700;padding:2px 8px;border-radius:100px;text-transform:uppercase;letter-spacing:.05em}
+.mc-body{padding:12px 12px 14px}
+.mc-name{font-size:13px;font-weight:700;color:var(--navy);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:2px}
+.mc-role{font-size:11px;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.04em;margin-bottom:4px}
+.mc-detail{font-size:11px;color:var(--mid)}
+.mc-actions{display:flex;border-top:1px solid var(--border)}
+.mc-act-btn{flex:1;padding:8px;border:none;background:#fff;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;transition:background .2s}
+.mc-act-btn:hover{background:var(--cream)}
+.mc-act-btn.del:hover{background:#FEF2F2;color:var(--red)}
+
+/* ACTIVITY LOG */
+.log-item{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.log-item:last-child{border-bottom:none}
+.log-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:5px}
+.log-time{font-size:11px;color:var(--muted);flex-shrink:0;min-width:80px}
+.log-msg{font-size:13px;color:var(--txt)}
+
+/* SIDEBAR OVERLAY */
+.sb-ov{position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:199;display:none;backdrop-filter:blur(2px)}
+.sb-ov.on{display:block}
+
+/* CONTACT INFO GRID */
+.ci-row{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)}
+.ci-row:last-child{border-bottom:none}
+.ci-ic{font-size:18px;width:28px;text-align:center;flex-shrink:0}
+.ci-info{flex:1}
+.ci-label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ci-value{font-size:14px;font-weight:600;color:var(--navy)}
+
+@media(max-width:1200px){.stats-row{grid-template-columns:repeat(3,1fr)}.fgrid.t3{grid-template-columns:1fr 1fr}}
+@media(max-width:960px){.mem-grid{grid-template-columns:repeat(2,1fr)}.stats-row{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:800px){
+  .sb{transform:translateX(-100%)}.sb.open{transform:translateX(0)}.tb{left:0}.main{margin-left:0}
+  .tb-hbg{display:flex}.fgrid{grid-template-columns:1fr}.fgrid.t3{grid-template-columns:1fr}.pg{padding:14px}
+}
+@media(max-width:500px){.stats-row{grid-template-columns:1fr 1fr}.mem-grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="guard" id="guard"><div style="font-size:40px">🔒</div><p>Admin access required. <a href="member-login.html">Sign in →</a></p></div>
+<div class="sb-ov" id="sbOv" onclick="closeSb()"></div>
+
+<!-- SIDEBAR -->
+<aside class="sb" id="sb">
+  <div class="sb-top">
+    <div class="sb-logo"><img src="leo-logo.png" alt="Leo" onerror="this.style.display='none'"></div>
+    <div class="sb-info"><strong>Leo Club of Contai</strong><span>Admin Panel</span></div>
+  </div>
+  <div class="sb-badge"><div style="font-size:18px">⚙️</div><div class="t"><strong>Admin Mode</strong>Full cloud control</div></div>
+  <nav class="sb-nav">
+    <div class="sb-sec">Overview</div>
+    <button class="sbl act" data-pg="overview" onclick="go('overview')"><span class="ic">🏠</span>Dashboard</button>
+    <div class="sb-sec">Content</div>
+    <button class="sbl" data-pg="projects" onclick="go('projects')"><span class="ic">📁</span>All Projects<span class="ct a" id="ct-p">0</span></button>
+    <button class="sbl" data-pg="upload" onclick="go('upload')"><span class="ic">📤</span>Upload Project</button>
+    <button class="sbl" data-pg="events" onclick="go('events')"><span class="ic">📅</span>Events<span class="ct g" id="ct-e">0</span></button>
+    <button class="sbl" data-pg="polls" onclick="go('polls')"><span class="ic">🗳️</span>Polls<span class="ct" id="ct-po">0</span></button>
+    <button class="sbl" data-pg="announce" onclick="go('announce')"><span class="ic">📢</span>Announcements</button>
+    <button class="sbl" data-pg="gallery" onclick="go('gallery')"><span class="ic">🖼️</span>Gallery</button>
+    <div class="sb-sec">People</div>
+    <button class="sbl" data-pg="members" onclick="go('members')"><span class="ic">🪪</span>Members + Photos<span class="ct g" id="ct-m">0</span></button>
+    <button class="sbl" data-pg="accounts" onclick="go('accounts')"><span class="ic">🔑</span>User Accounts</button>
+    <div class="sb-sec">Website</div>
+    <button class="sbl" data-pg="hero" onclick="go('hero')"><span class="ic">🏷️</span>Home Page</button>
+    <button class="sbl" data-pg="about-pg" onclick="go('about-pg')"><span class="ic">ℹ️</span>About Page</button>
+    <button class="sbl" data-pg="services-pg" onclick="go('services-pg')"><span class="ic">🤝</span>Services Page</button>
+    <button class="sbl" data-pg="contact-pg" onclick="go('contact-pg')"><span class="ic">📞</span>Contact Info</button>
+    <div class="sb-sec">Tools</div>
+    <button class="sbl" data-pg="activity" onclick="go('activity')"><span class="ic">📋</span>Activity Log</button>
+  </nav>
+  <div class="sb-foot">
+    <div class="sb-ur">
+      <div class="sb-av" id="sbAv">LA</div>
+      <div><div class="sb-un" id="sbName">Admin</div><div class="sb-ro">Administrator</div></div>
+    </div>
+    <button class="sb-out" onclick="doLogout()">🚪 Sign Out</button>
+  </div>
+</aside>
+
+<!-- TOPBAR -->
+<header class="tb">
+  <div class="tb-l">
+    <button class="tb-hbg" onclick="toggleSb()">☰</button>
+    <div class="tb-tl" id="tbTitle">Dashboard <em>Overview</em></div>
+  </div>
+  <div class="tb-r">
+    <button class="tb-btn" onclick="window.open('index.html','_blank')">🌐 View Site</button>
+    <button class="tb-btn g" onclick="go('upload')">+ Upload Project</button>
+    <div class="tb-av" id="tbAv">LA</div>
+  </div>
+</header>
+
+<main class="main">
+
+<!-- ═══ OVERVIEW ═══ -->
+<div class="pg act" id="pg-overview">
+  <div class="stats-row">
+    <div class="sc c1"><div class="sc-top"><div class="sc-ic c1">📁</div></div><div class="sc-n" id="ov-p">0</div><div class="sc-l">Total Projects</div></div>
+    <div class="sc c2"><div class="sc-top"><div class="sc-ic c2">📅</div></div><div class="sc-n" id="ov-e">0</div><div class="sc-l">Events</div></div>
+    <div class="sc c3"><div class="sc-top"><div class="sc-ic c3">🗳️</div></div><div class="sc-n" id="ov-po">0</div><div class="sc-l">Polls</div></div>
+    <div class="sc c4"><div class="sc-top"><div class="sc-ic c4">🪪</div></div><div class="sc-n" id="ov-m">0</div><div class="sc-l">Members</div></div>
+    <div class="sc c5"><div class="sc-top"><div class="sc-ic c5">👥</div></div><div class="sc-n" id="ov-u">0</div><div class="sc-l">User Accounts</div></div>
+  </div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card">
+      <div class="card-hd"><div><h3>Recent <em>Projects</em></h3></div><button class="btn btn-out btn-sm" onclick="go('projects')">View all</button></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Title</th><th>Category</th><th>Date</th></tr></thead><tbody id="ov-proj-list"></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="card-hd"><div><h3>Activity <em>Log</em></h3></div><button class="btn btn-out btn-sm" onclick="go('activity')">View all</button></div>
+      <div class="card-body" style="padding:12px 16px"><div id="ov-log"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ PROJECTS ═══ -->
+<div class="pg" id="pg-projects">
+  <div class="sec-hd">
+    <div><h2>All <em>Projects</em></h2><p>All uploaded service projects — edit, delete, filter</p></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <select class="fi" id="proj-filter" onchange="renderProjects()" style="width:auto;font-size:12px;padding:7px 11px">
+        <option value="">All Categories</option>
+        <option value="blood">🩸 Blood Donation</option>
+        <option value="environment">🌿 Environment</option>
+        <option value="education">📚 Education</option>
+        <option value="sports">⚽ Youth Sports</option>
+        <option value="donation">🤲 Donation Drives</option>
+        <option value="community">🤝 Community</option>
+      </select>
+      <button class="btn btn-gold btn-sm" onclick="go('upload')">+ Add New</button>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table>
+    <thead><tr><th>Photo</th><th>Title</th><th>Category</th><th>Date</th><th>Member</th><th>Badge</th><th>Actions</th></tr></thead>
+    <tbody id="proj-tbody"></tbody>
+  </table></div></div>
+</div>
+
+<!-- ═══ UPLOAD PROJECT ═══ -->
+<div class="pg" id="pg-upload">
+  <div class="sec-hd"><div><h2>Upload <em>New Project</em></h2><p>Add a project — photo uploaded directly to Firebase Storage</p></div></div>
+  <div class="card"><div class="card-hd"><h3>Project <em>Details</em></h3></div>
+  <div class="card-body">
+    <div id="up-toast" class="toast"></div>
+    <div class="fgrid">
+      <div class="fg"><label>Project Title *</label><input class="fi" type="text" id="up-title" placeholder="e.g. Annual Blood Donation Camp 2025"></div>
+      <div class="fg"><label>Event Date *</label><input class="fi" type="date" id="up-date"></div>
+      <div class="fg full"><label>Service Category *</label>
+        <div class="cat-chips">
+          <button class="cc on" data-cat="blood" onclick="selCat(this)">🩸 Blood Donation</button>
+          <button class="cc" data-cat="environment" onclick="selCat(this)">🌿 Environment</button>
+          <button class="cc" data-cat="education" onclick="selCat(this)">📚 Education</button>
+          <button class="cc" data-cat="sports" onclick="selCat(this)">⚽ Youth Sports</button>
+          <button class="cc" data-cat="donation" onclick="selCat(this)">🤲 Donation Drives</button>
+          <button class="cc" data-cat="community" onclick="selCat(this)">🤝 Community</button>
+        </div>
+        <input type="hidden" id="up-cat" value="blood">
+      </div>
+      <div class="fg full"><label>Description *</label><textarea class="fi" id="up-desc" rows="4" placeholder="Describe what was done, who participated, what was achieved…"></textarea></div>
+      <div class="fg"><label>Badge Label</label><input class="fi" type="text" id="up-badge" placeholder="e.g. Featured, Impact"></div>
+      <div class="fg"><label>Location</label><input class="fi" type="text" id="up-loc" placeholder="e.g. Contai Municipality Hall"></div>
+      <div class="fg"><label>Uploaded By (Member)</label><input class="fi" type="text" id="up-member" placeholder="Leo member name"></div>
+      <div class="fg full"><label>Project Photo</label>
+        <div class="img-drop" id="up-drop">
+          <input type="file" id="up-file" accept="image/*" onchange="previewUpFile(event)">
+          <div class="img-drop-ic">📷</div>
+          <div class="img-drop-tx">Click to upload photo — saved to Firebase Storage</div>
+          <div class="img-drop-sub">PNG, JPG, WEBP — visible on all devices</div>
+        </div>
+        <div class="upload-progress" id="up-progress"><div class="upload-progress-bar" id="up-progress-bar"></div></div>
+        <div class="img-prev" id="up-prev"><img id="up-prev-img" src="" alt="Preview"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:6px">
+      <button class="btn btn-gold btn-lg" onclick="submitProject()">✓ Publish to Cloud</button>
+      <button class="btn btn-out" onclick="resetUpload()">Reset</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- ═══ EVENTS ═══ -->
+<div class="pg" id="pg-events">
+  <div class="sec-hd"><div><h2>Manage <em>Events</em></h2></div><button class="btn btn-gold btn-sm" onclick="toggleCard('ev-form')">+ Add Event</button></div>
+  <div class="card" id="ev-form" style="display:none">
+    <div class="card-hd"><h3>Add <em>New Event</em></h3></div>
+    <div class="card-body">
+      <div id="ev-toast" class="toast"></div>
+      <div class="fgrid">
+        <div class="fg"><label>Event Title *</label><input class="fi" type="text" id="ev-title" placeholder="Event name"></div>
+        <div class="fg"><label>Date *</label><input class="fi" type="date" id="ev-date"></div>
+        <div class="fg"><label>Time</label><input class="fi" type="time" id="ev-time"></div>
+        <div class="fg"><label>Location</label><input class="fi" type="text" id="ev-loc" placeholder="Venue"></div>
+        <div class="fg"><label>Category</label>
+          <select class="fi" id="ev-cat"><option value="blood">🩸 Blood Donation</option><option value="environment">🌿 Environment</option><option value="education">📚 Education</option><option value="sports">⚽ Youth Sports</option><option value="donation">🤲 Donation Drives</option><option value="community">🤝 Community</option><option value="meeting">📋 Club Meeting</option></select>
+        </div>
+        <div class="fg"><label>Status</label>
+          <select class="fi" id="ev-status"><option value="upcoming">Upcoming</option><option value="open">Open RSVP</option><option value="soon">Starting Soon</option></select>
+        </div>
+        <div class="fg full"><label>Description *</label><textarea class="fi" id="ev-desc" rows="3" placeholder="Event description…"></textarea></div>
+      </div>
+      <button class="btn btn-gold" onclick="addEvent()">+ Add to Firebase</button>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Title</th><th>Date</th><th>Time</th><th>Location</th><th>Category</th><th>Status</th><th>RSVPs</th><th>Actions</th></tr></thead><tbody id="ev-tbody"></tbody></table></div></div>
+</div>
+
+<!-- ═══ POLLS ═══ -->
+<div class="pg" id="pg-polls">
+  <div class="sec-hd"><div><h2>Manage <em>Polls</em></h2></div><button class="btn btn-gold btn-sm" onclick="toggleCard('poll-form')">+ Create Poll</button></div>
+  <div class="card" id="poll-form" style="display:none">
+    <div class="card-hd"><h3>Create <em>Poll</em></h3></div>
+    <div class="card-body">
+      <div id="poll-toast" class="toast"></div>
+      <div class="fgrid">
+        <div class="fg full"><label>Question *</label><input class="fi" type="text" id="poll-q" placeholder="e.g. Will you join the Blood Donation Camp on 20 Feb?"></div>
+        <div class="fg"><label>Option 1 *</label><input class="fi" type="text" id="poll-o1" value="Yes, I will join! ✅"></div>
+        <div class="fg"><label>Option 2 *</label><input class="fi" type="text" id="poll-o2" value="No, I can't make it ❌"></div>
+        <div class="fg"><label>Option 3 (optional)</label><input class="fi" type="text" id="poll-o3" placeholder="Maybe 🤔"></div>
+        <div class="fg"><label>Related Event</label><input class="fi" type="text" id="poll-ev" placeholder="e.g. Blood Donation Camp 2026"></div>
+        <div class="fg"><label>Status</label><select class="fi" id="poll-st"><option value="active">Active</option><option value="hot">🔥 Hot</option><option value="closed">Closed</option></select></div>
+      </div>
+      <button class="btn btn-gold" onclick="addPoll()">+ Save to Firebase</button>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Question</th><th>Status</th><th>Votes</th><th>Actions</th></tr></thead><tbody id="poll-tbody"></tbody></table></div></div>
+</div>
+
+<!-- ═══ ANNOUNCEMENTS ═══ -->
+<div class="pg" id="pg-announce">
+  <div class="sec-hd"><div><h2>Manage <em>Announcements</em></h2></div><button class="btn btn-gold btn-sm" onclick="toggleCard('ann-form')">+ New Announcement</button></div>
+  <div class="card" id="ann-form" style="display:none">
+    <div class="card-hd"><h3>New <em>Announcement</em></h3></div>
+    <div class="card-body">
+      <div id="ann-toast" class="toast"></div>
+      <div class="fgrid">
+        <div class="fg"><label>Title *</label><input class="fi" type="text" id="ann-title" placeholder="Announcement title"></div>
+        <div class="fg"><label>Type</label><select class="fi" id="ann-type"><option value="info">ℹ️ Info</option><option value="alert">⚠️ Alert</option><option value="success">✅ Success</option><option value="gold">★ Important</option></select></div>
+        <div class="fg full"><label>Message *</label><textarea class="fi" id="ann-body" rows="3" placeholder="Full announcement text…"></textarea></div>
+      </div>
+      <button class="btn btn-gold" onclick="addAnn()">+ Post to Firebase</button>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Title</th><th>Message</th><th>Type</th><th>Date</th><th>Actions</th></tr></thead><tbody id="ann-tbody"></tbody></table></div></div>
+</div>
+
+<!-- ═══ GALLERY ═══ -->
+<div class="pg" id="pg-gallery">
+  <div class="sec-hd"><div><h2>Photo <em>Gallery</em></h2></div></div>
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-hd"><h3>Add <em>Photo</em></h3></div>
+    <div class="card-body">
+      <div id="gal-toast" class="toast"></div>
+      <div class="fgrid">
+        <div class="fg"><label>Photo Title</label><input class="fi" type="text" id="gal-title" placeholder="e.g. Blood Donation Camp 2024"></div>
+        <div class="fg"><label>Category</label><select class="fi" id="gal-cat"><option value="events">Events</option><option value="health">Health</option><option value="environment">Environment</option><option value="education">Education</option><option value="sports">Sports</option><option value="welfare">Welfare</option></select></div>
+        <div class="fg full"><label>Upload Photo or Paste URL</label>
+          <div class="img-drop" style="margin-bottom:8px">
+            <input type="file" id="gal-file" accept="image/*" onchange="previewGalFile(event)">
+            <div class="img-drop-ic">📷</div><div class="img-drop-tx">Upload from device</div>
+          </div>
+          <input class="fi" type="text" id="gal-url" placeholder="Or paste image URL…" oninput="previewGalUrl(this)">
+          <div class="img-prev" id="gal-prev"><img id="gal-prev-img" src="" alt="Preview"></div>
+          <div class="upload-progress" id="gal-progress"><div class="upload-progress-bar" id="gal-progress-bar"></div></div>
+        </div>
+      </div>
+      <button class="btn btn-gold" onclick="addGalleryPhoto()">+ Add Photo</button>
+    </div>
+  </div>
+  <div class="card"><div class="card-hd"><h3>Gallery <em>Photos</em></h3></div>
+  <div class="card-body"><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:10px" id="gal-grid"></div></div></div>
+</div>
+
+<!-- ═══ MEMBERS ═══ -->
+<div class="pg" id="pg-members">
+  <div class="sec-hd"><div><h2>Members <em>with Photos</em></h2><p>Add/edit/delete members — photos stored in Firebase Storage</p></div><button class="btn btn-gold btn-sm" onclick="toggleCard('mem-form')">+ Add Member</button></div>
+  <div class="card" id="mem-form" style="display:none;margin-bottom:14px">
+    <div class="card-hd"><h3 id="mem-form-title">Add <em>Member</em></h3></div>
+    <div class="card-body">
+      <div id="mem-toast" class="toast"></div>
+      <div class="fgrid">
+        <div class="fg"><label>Full Name *</label><input class="fi" type="text" id="mem-name" placeholder="e.g. Leo Anik Giri"></div>
+        <div class="fg"><label>Role / Position *</label><input class="fi" type="text" id="mem-role" placeholder="e.g. President"></div>
+        <div class="fg"><label>Phone</label><input class="fi" type="text" id="mem-phone" placeholder="+91 XXXXXXXXXX"></div>
+        <div class="fg"><label>Email</label><input class="fi" type="email" id="mem-email" placeholder="member@email.com"></div>
+        <div class="fg"><label>Join Year</label><input class="fi" type="number" id="mem-year" placeholder="e.g. 2020" min="1980" max="2030"></div>
+        <div class="fg"><label>Category</label><select class="fi" id="mem-cat"><option value="leadership">Leadership</option><option value="member">General Member</option><option value="honorary">Honorary</option></select></div>
+        <div class="fg full"><label>Short Bio</label><textarea class="fi" id="mem-bio" rows="2" placeholder="Brief bio…"></textarea></div>
+        <div class="fg full"><label>Profile Photo</label>
+          <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+            <div class="img-drop" style="flex:1;min-width:200px">
+              <input type="file" id="mem-file" accept="image/*" onchange="previewMemFile(event)">
+              <div class="img-drop-ic">📷</div><div class="img-drop-tx">Upload profile photo</div><div class="img-drop-sub">Stored in Firebase Storage</div>
+            </div>
+            <div class="img-prev img-prev-circle" id="mem-photo-prev" style="display:none;flex-shrink:0"><img id="mem-prev-img" src="" alt="Preview"></div>
+          </div>
+          <div class="upload-progress" id="mem-progress"><div class="upload-progress-bar" id="mem-progress-bar"></div></div>
+          <input class="fi" type="text" id="mem-photo-url" placeholder="Or paste photo URL…" style="margin-top:8px" oninput="previewMemUrl(this)">
+          <p class="ftxt">Uploaded photo will be used on Team page automatically</p>
+        </div>
+      </div>
+      <div style="display:flex;gap:10px">
+        <button class="btn btn-gold btn-lg" id="mem-submit-btn" onclick="submitMember()">+ Add Member</button>
+        <button class="btn btn-out" onclick="resetMemForm()">Reset</button>
+      </div>
+      <input type="hidden" id="mem-edit-id" value="">
+    </div>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px">
+    <div class="sc c1" style="cursor:default"><div class="sc-top"><div class="sc-ic c1">👑</div></div><div class="sc-n" id="mc-lead">0</div><div class="sc-l">Leadership</div></div>
+    <div class="sc c3" style="cursor:default"><div class="sc-top"><div class="sc-ic c3">👥</div></div><div class="sc-n" id="mc-gen">0</div><div class="sc-l">General Members</div></div>
+    <div class="sc c4" style="cursor:default"><div class="sc-top"><div class="sc-ic c4">🏅</div></div><div class="sc-n" id="mc-total">0</div><div class="sc-l">Total</div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap">
+    <select class="fi" id="mem-filter" onchange="renderMembers()" style="width:auto;font-size:12px;padding:7px 11px">
+      <option value="">All Categories</option><option value="leadership">Leadership</option><option value="member">General</option><option value="honorary">Honorary</option>
+    </select>
+    <input class="fi" type="text" id="mem-search" placeholder="Search by name or role…" oninput="renderMembers()" style="flex:1;min-width:180px;font-size:13px">
+  </div>
+  <div class="mem-grid" id="mem-grid"></div>
+  <div id="mem-empty" style="display:none;text-align:center;padding:50px 20px;background:#fff;border-radius:var(--rl);border:2px dashed var(--border)">
+    <div style="font-size:40px;margin-bottom:10px">👥</div><h3 style="color:var(--navy);margin-bottom:4px">No members found</h3><p style="font-size:13px;color:var(--mid)">Add your first member above.</p>
+  </div>
+</div>
+
+<!-- ═══ USER ACCOUNTS ═══ -->
+<div class="pg" id="pg-accounts">
+  <div class="sec-hd"><div><h2>User <em>Accounts</em></h2><p>Login credentials for portal access — stored in Firebase Auth</p></div><button class="btn btn-gold btn-sm" onclick="toggleCard('acc-form')">+ Add Account</button></div>
+  <div class="card" id="acc-form" style="display:none;margin-bottom:14px">
+    <div class="card-hd"><h3>Create <em>Account</em></h3></div>
+    <div class="card-body">
+      <div id="acc-toast" class="toast"></div>
+      <div class="fgrid">
+        <div class="fg"><label>Full Name *</label><input class="fi" type="text" id="acc-name" placeholder="Leo Member Name"></div>
+        <div class="fg"><label>Email Address *</label><input class="fi" type="email" id="acc-email" placeholder="member@email.com"></div>
+        <div class="fg"><label>Password *</label><input class="fi" type="text" id="acc-pass" placeholder="Minimum 6 characters"></div>
+        <div class="fg"><label>Role</label><select class="fi" id="acc-role"><option value="member">Member</option><option value="admin">Admin</option></select></div>
+      </div>
+      <p class="ftxt" style="margin-bottom:12px">⚠️ The new user will receive an email from Firebase. They can reset their password anytime.</p>
+      <button class="btn btn-gold" onclick="createAccount()">+ Create Firebase Account</button>
+    </div>
+  </div>
+  <div class="card"><div class="tbl-wrap"><table><thead><tr><th>Name</th><th>Email</th><th>Role</th><th>UID</th><th>Actions</th></tr></thead><tbody id="acc-tbody"></tbody></table></div></div>
+</div>
+
+<!-- ═══ HOME PAGE ═══ -->
+<div class="pg" id="pg-hero">
+  <div class="sec-hd"><div><h2>Home <em>Page Settings</em></h2></div></div>
+  <div class="card"><div class="card-hd"><h3>Hero <em>Content</em></h3></div>
+  <div class="card-body">
+    <div id="hero-toast" class="toast"></div>
+    <div class="fgrid">
+      <div class="fg"><label>Hero Title Line 1</label><input class="fi" type="text" id="h-t1" placeholder="Where young leaders"></div>
+      <div class="fg"><label>Hero Title Italic Word</label><input class="fi" type="text" id="h-t2" placeholder="serve"></div>
+      <div class="fg full"><label>Hero Subtitle</label><textarea class="fi" id="h-sub" rows="3"></textarea></div>
+      <div class="fg"><label>Button 1 Text</label><input class="fi" type="text" id="h-b1" placeholder="Discover Our Mission →"></div>
+      <div class="fg"><label>Button 2 Text</label><input class="fi" type="text" id="h-b2" placeholder="Our Programs"></div>
+      <div class="fg"><label>Stat 1 Number</label><input class="fi" type="text" id="h-s1n" placeholder="45+"></div>
+      <div class="fg"><label>Stat 1 Label</label><input class="fi" type="text" id="h-s1l" placeholder="Years of Service"></div>
+      <div class="fg"><label>Stat 2 Number</label><input class="fi" type="text" id="h-s2n" placeholder="74"></div>
+      <div class="fg"><label>Stat 2 Label</label><input class="fi" type="text" id="h-s2l" placeholder="Active Members"></div>
+      <div class="fg"><label>Stat 3 Number</label><input class="fi" type="text" id="h-s3n" placeholder="500+"></div>
+      <div class="fg"><label>Stat 3 Label</label><input class="fi" type="text" id="h-s3l" placeholder="Projects Done"></div>
+      <div class="fg"><label>Stat 4 Number</label><input class="fi" type="text" id="h-s4n" placeholder="10K+"></div>
+      <div class="fg"><label>Stat 4 Label</label><input class="fi" type="text" id="h-s4l" placeholder="Lives Impacted"></div>
+    </div>
+    <button class="btn btn-gold" onclick="saveSettings('hero')">💾 Save to Firebase</button>
+  </div></div>
+</div>
+
+<!-- ═══ ABOUT PAGE ═══ -->
+<div class="pg" id="pg-about-pg">
+  <div class="sec-hd"><div><h2>About <em>Page</em></h2></div></div>
+  <div class="card"><div class="card-hd"><h3>About <em>Content</em></h3></div>
+  <div class="card-body">
+    <div id="about-toast" class="toast"></div>
+    <div class="fgrid">
+      <div class="fg full"><label>Main Heading</label><input class="fi" type="text" id="ab-h" placeholder="Where there's a need, there's a Leo"></div>
+      <div class="fg full"><label>Quote</label><input class="fi" type="text" id="ab-q"></div>
+      <div class="fg full"><label>Paragraph 1</label><textarea class="fi" id="ab-p1" rows="4"></textarea></div>
+      <div class="fg full"><label>Paragraph 2</label><textarea class="fi" id="ab-p2" rows="4"></textarea></div>
+      <div class="fg"><label>Founded Date</label><input class="fi" type="text" id="ab-fd" placeholder="14 April 1980"></div>
+      <div class="fg"><label>Member Count</label><input class="fi" type="number" id="ab-mc" placeholder="74"></div>
+    </div>
+    <button class="btn btn-gold" onclick="saveSettings('about')">💾 Save to Firebase</button>
+  </div></div>
+</div>
+
+<!-- ═══ SERVICES ═══ -->
+<div class="pg" id="pg-services-pg">
+  <div class="sec-hd"><div><h2>Services <em>Page</em></h2></div></div>
+  <div id="svc-list"></div>
+</div>
+
+<!-- ═══ CONTACT INFO ═══ -->
+<div class="pg" id="pg-contact-pg">
+  <div class="sec-hd"><div><h2>Contact <em>Information</em></h2><p>Shown across the entire website — footer, contact page, trust bar</p></div></div>
+  <div class="card"><div class="card-hd"><h3>Club <em>Contact Details</em></h3></div>
+  <div class="card-body">
+    <div id="contact-toast" class="toast"></div>
+    <div class="fgrid">
+      <div class="fg full"><label>Full Address</label><input class="fi" type="text" id="ci-addr" placeholder="Saraswatitala, Contai, Purba Medinipur, W.B. 721401"></div>
+      <div class="fg"><label>General Phone</label><input class="fi" type="text" id="ci-ph" placeholder="+91 8710049344"></div>
+      <div class="fg"><label>Email</label><input class="fi" type="email" id="ci-email" placeholder="info@leocontai.org"></div>
+      <div class="fg"><label>President Name</label><input class="fi" type="text" id="ci-pn" placeholder="Leo Anik Giri"></div>
+      <div class="fg"><label>President Phone</label><input class="fi" type="text" id="ci-pp" placeholder="+91 6295585346"></div>
+      <div class="fg"><label>1st VP Phone</label><input class="fi" type="text" id="ci-vp" placeholder="+91 8250160958"></div>
+      <div class="fg"><label>Secretary Name</label><input class="fi" type="text" id="ci-sn" placeholder="Leo Arkaprabha Panda"></div>
+      <div class="fg"><label>Secretary Phone</label><input class="fi" type="text" id="ci-sp" placeholder="+91 9733057712"></div>
+      <div class="fg"><label>Facebook URL</label><input class="fi" type="text" id="ci-fb" placeholder="https://www.facebook.com/leocontai/"></div>
+      <div class="fg"><label>Website URL</label><input class="fi" type="text" id="ci-web" placeholder="https://www.leocontai.org"></div>
+    </div>
+    <button class="btn btn-gold" onclick="saveSettings('contact')">💾 Save to Firebase</button>
+  </div></div>
+</div>
+
+<!-- ═══ ACTIVITY LOG ═══ -->
+<div class="pg" id="pg-activity">
+  <div class="sec-hd"><div><h2>Activity <em>Log</em></h2></div><button class="btn btn-red btn-sm" onclick="clearLog()">Clear All</button></div>
+  <div class="card"><div class="card-body"><div id="full-log"></div></div></div>
+</div>
+
+</main>
+
+<script type="module">
+import { initializeApp }       from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+import { getFirestore, collection, doc, getDocs, addDoc, setDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp, getDoc } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { getStorage, ref as sRef, uploadBytesResumable, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
+
+const app     = initializeApp(window.FIREBASE_CONFIG);
+const auth    = getAuth(app);
+const db      = getFirestore(app);
+const storage = getStorage(app);
+
+// ── AUTH GUARD ──
+let CU = null;
+const sess = sessionStorage.getItem('leo_user');
+if(!sess){document.getElementById('guard').classList.add('on');}
+else {
+  CU = JSON.parse(sess);
+  if(CU.role !== 'admin'){document.getElementById('guard').classList.add('on');}
+  else {
+    document.getElementById('sbAv').textContent  = CU.initials||'LA';
+    document.getElementById('sbName').textContent = CU.name||'Admin';
+    document.getElementById('tbAv').textContent   = CU.initials||'LA';
+  }
+}
+
+window.doLogout = async () => { await signOut(auth); sessionStorage.removeItem('leo_user'); window.location.href='member-login.html'; };
+
+// ── CATEGORY INFO ──
+const CAT = {
+  blood:       {l:'Blood Donation',e:'🩸',col:'#e74c3c'},
+  environment: {l:'Environment',   e:'🌿',col:'#27ae60'},
+  education:   {l:'Education',     e:'📚',col:'#3b82f6'},
+  sports:      {l:'Youth Sports',  e:'⚽',col:'#f59e0b'},
+  donation:    {l:'Donation',      e:'🤲',col:'#8b5cf6'},
+  community:   {l:'Community',     e:'🤝',col:'#06b6d4'},
+  meeting:     {l:'Meeting',       e:'📋',col:'#6b7280'},
+};
+
+// ── HELPERS ──
+const fmtDate = d => { if(!d) return ''; try{ return new Date(d+'T00:00:00').toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'numeric'})}catch{return d}};
+const uid = () => 'id-'+Date.now()+'-'+Math.floor(Math.random()*9999);
+const toast = (id,msg,ok=true) => { const t=document.getElementById(id);if(!t)return;t.className='toast '+(ok?'ok':'err');t.textContent=msg;t.style.display='block';setTimeout(()=>t.style.display='none',4000);};
+const ini = n => (n||'').split(' ').filter(Boolean).slice(0,2).map(w=>w[0]).join('').toUpperCase()||'?';
+
+// ── ACTIVITY LOG ──
+const addLog = async (msg,color='#BF8C3C') => {
+  try { await addDoc(collection(db,'activityLog'),{msg,color,time:serverTimestamp()}); } catch{}
+};
+const renderLog = async (targetId, limit=20) => {
+  try {
+    const snap = await getDocs(query(collection(db,'activityLog'),orderBy('time','desc')));
+    const items = snap.docs.slice(0,limit);
+    const el = document.getElementById(targetId);
+    if(!el) return;
+    if(!items.length){el.innerHTML='<p style="color:var(--muted);font-size:13px;text-align:center;padding:20px">No activity yet.</p>';return;}
+    el.innerHTML = items.map(d=>{ const v=d.data(); return `<div class="log-item"><div class="log-dot" style="background:${v.color||'#BF8C3C'}"></div><div class="log-time">${v.time?.toDate?.()?.toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})||'just now'}</div><div class="log-msg">${v.msg}</div></div>`; }).join('');
+  } catch(e){console.error(e)}
+};
+window.clearLog = async () => { if(!confirm('Clear all logs?'))return; const snap=await getDocs(collection(db,'activityLog')); for(const d of snap.docs) await deleteDoc(d.ref); renderLog('full-log'); };
+
+// ── UPLOAD HELPER ──
+const uploadFile = (file, path, progressBarId, progressWrapId) => {
+  return new Promise((resolve,reject) => {
+    const prog = document.getElementById(progressWrapId);
+    const bar  = document.getElementById(progressBarId);
+    if(prog) prog.style.display='block';
+    const storageRef = sRef(storage, path);
+    const task = uploadBytesResumable(storageRef, file);
+    task.on('state_changed',
+      snap => { const pct = snap.bytesTransferred/snap.totalBytes*100; if(bar) bar.style.width=pct+'%'; },
+      err => { if(prog) prog.style.display='none'; reject(err); },
+      async () => { const url = await getDownloadURL(task.snapshot.ref); if(prog) prog.style.display='none'; if(bar) bar.style.width='0'; resolve(url); }
+    );
+  });
+};
+
+// ── NAV ──
+const PG_TITLES = {
+  overview:'Dashboard Overview', projects:'All Projects', upload:'Upload Project',
+  events:'Manage Events', polls:'Manage Polls', announce:'Announcements', gallery:'Photo Gallery',
+  members:'Members with Photos', accounts:'User Accounts',
+  hero:'Home Page Settings', 'about-pg':'About Page', 'services-pg':'Services Page', 'contact-pg':'Contact Info',
+  activity:'Activity Log'
+};
+window.go = id => {
+  document.querySelectorAll('.pg').forEach(p=>p.classList.remove('act'));
+  document.querySelectorAll('.sbl').forEach(l=>l.classList.remove('act'));
+  const pg=document.getElementById('pg-'+id); if(pg) pg.classList.add('act');
+  document.querySelectorAll(`[data-pg="${id}"]`).forEach(l=>l.classList.add('act'));
+  const t=PG_TITLES[id]||id; const parts=t.split(' '); const last=parts.pop();
+  document.getElementById('tbTitle').innerHTML=parts.join(' ')+' <em>'+last+'</em>';
+  closeSb(); window.scrollTo(0,0);
+  const map={overview:renderOverview, projects:renderProjects, events:renderEvents,
+    polls:renderPolls, announce:renderAnn, gallery:renderGallery,
+    members:renderMembers, accounts:renderAccounts, activity:()=>renderLog('full-log',100),
+    'services-pg':renderServicesEditor, 'contact-pg':loadContact, hero:loadHero, 'about-pg':loadAbout};
+  if(map[id]) map[id]();
+};
+window.toggleSb = () => { document.getElementById('sb').classList.toggle('open'); document.getElementById('sbOv').classList.toggle('on'); };
+window.closeSb  = () => { document.getElementById('sb').classList.remove('open'); document.getElementById('sbOv').classList.remove('on'); };
+window.toggleCard = id => { const c=document.getElementById(id); c.style.display=c.style.display==='none'?'block':'none'; };
+
+// ── LIVE COUNTS (Firestore onSnapshot) ──
+const updateCount = (colId, elId) => {
+  onSnapshot(collection(db,colId), snap => {
+    const n = snap.size;
+    const el = document.getElementById(elId); if(el) el.textContent=n;
+    const ov = document.getElementById('ov-'+elId.split('-')[1]); if(ov) ov.textContent=n;
+  });
+};
+if(CU?.role==='admin'){
+  updateCount('projects','ct-p'); updateCount('events','ct-e');
+  updateCount('polls','ct-po'); updateCount('members','ct-m');
+  updateCount('users','ov-u');
+}
+
+// ── OVERVIEW ──
+const renderOverview = async () => {
+  renderLog('ov-log', 6);
+  try {
+    const snap = await getDocs(query(collection(db,'projects'),orderBy('createdAt','desc')));
+    document.getElementById('ov-proj-list').innerHTML = snap.docs.slice(0,5).map(d=>{const v=d.data();const ci=CAT[v.cat]||{e:'📁',l:'Other'};return `<tr><td>${v.title||''}</td><td><span class="badge badge-gray">${ci.e} ${ci.l}</span></td><td style="font-size:12px;white-space:nowrap">${fmtDate(v.date)}</td></tr>`}).join('');
+  } catch{}
+};
+
+// ── PROJECTS ──
+const renderProjects = async () => {
+  const cat = document.getElementById('proj-filter')?.value||'';
+  try {
+    const snap = await getDocs(query(collection(db,'projects'),orderBy('createdAt','desc')));
+    let docs = snap.docs; if(cat) docs=docs.filter(d=>d.data().cat===cat);
+    const tb = document.getElementById('proj-tbody');
+    if(!docs.length){tb.innerHTML='<tr><td colspan="7" style="text-align:center;color:var(--muted);padding:28px">No projects found.</td></tr>';return;}
+    tb.innerHTML = docs.map(d=>{
+      const v=d.data(); const ci=CAT[v.cat]||{e:'📁',l:'Other',col:'#666'};
+      return `<tr>
+        <td>${v.imageUrl?`<img class="td-img" src="${v.imageUrl}" onerror="this.style.display='none'">`:`<div style="width:48px;height:36px;background:var(--navy2);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:18px">${ci.e}</div>`}</td>
+        <td><strong style="font-size:13px">${v.title||''}</strong>${v.location?`<br><span style="font-size:11px;color:var(--muted)">📍 ${v.location}</span>`:''}</td>
+        <td><span class="badge badge-gray" style="color:${ci.col}">${ci.e} ${ci.l}</span></td>
+        <td style="white-space:nowrap;font-size:12px">${fmtDate(v.date)}</td>
+        <td style="font-size:12px">${v.member||'—'}</td>
+        <td>${v.badge?`<span class="badge badge-gold">${v.badge}</span>`:'—'}</td>
+        <td><button class="btn btn-red btn-sm btn-icon" onclick="delDoc('projects','${d.id}','Project')">🗑</button></td>
+      </tr>`;
+    }).join('');
+  } catch(e){console.error(e)}
+};
+
+// Upload project
+let selCatVal='blood', upFileObj=null;
+window.selCat = btn => { document.querySelectorAll('.cc').forEach(b=>b.classList.remove('on')); btn.classList.add('on'); selCatVal=btn.dataset.cat; document.getElementById('up-cat').value=selCatVal; };
+window.previewUpFile = e => { const f=e.target.files[0]; if(!f) return; upFileObj=f; const r=new FileReader(); r.onload=ev=>{ document.getElementById('up-prev-img').src=ev.target.result; document.getElementById('up-prev').style.display='block'; }; r.readAsDataURL(f); };
+
+window.submitProject = async () => {
+  const title=document.getElementById('up-title').value.trim();
+  const date=document.getElementById('up-date').value;
+  const desc=document.getElementById('up-desc').value.trim();
+  if(!title||!date||!desc){toast('up-toast','Please fill Title, Date and Description.',false);return;}
+  const btn=document.querySelector('#pg-upload .btn-gold.btn-lg');
+  btn.textContent='Uploading…'; btn.style.opacity='.7'; btn.style.pointerEvents='none';
+  try {
+    let imageUrl='';
+    if(upFileObj){
+      imageUrl = await uploadFile(upFileObj,`projects/${Date.now()}_${upFileObj.name}`,'up-progress-bar','up-progress');
+    }
+    await addDoc(collection(db,'projects'),{
+      title, date, description:desc, cat:selCatVal,
+      badge:document.getElementById('up-badge').value.trim(),
+      location:document.getElementById('up-loc').value.trim(),
+      member:document.getElementById('up-member').value.trim()||CU.name,
+      imageUrl, createdAt:serverTimestamp(), uploadedBy:CU.uid
+    });
+    await addLog(`Uploaded project: "${title}" (${CAT[selCatVal]?.l})`);
+    toast('up-toast',`✅ "${title}" published to Firebase!`);
+    resetUpload();
+    setTimeout(()=>go('projects'),1500);
+  } catch(e){toast('up-toast','Error: '+e.message,false);}
+  btn.textContent='✓ Publish to Cloud'; btn.style.opacity=''; btn.style.pointerEvents='';
+};
+
+window.resetUpload = () => {
+  ['up-title','up-date','up-desc','up-badge','up-loc','up-member'].forEach(id=>{ const el=document.getElementById(id);if(el)el.value=''; });
+  document.getElementById('up-file').value=''; document.getElementById('up-prev').style.display='none';
+  document.querySelectorAll('.cc').forEach(b=>b.classList.remove('on')); document.querySelector('[data-cat="blood"]').classList.add('on');
+  selCatVal='blood'; upFileObj=null;
+};
+
+// ── EVENTS ──
+const renderEvents = async () => {
+  try {
+    const snap = await getDocs(query(collection(db,'events'),orderBy('date','asc')));
+    const tb = document.getElementById('ev-tbody');
+    const sMap = {upcoming:'badge-blue',open:'badge-green',soon:'badge-amber'};
+    tb.innerHTML = snap.docs.map(d=>{
+      const v=d.data(); const ci=CAT[v.cat]||{e:'📋',l:'Other'};
+      const yes=Object.values(v.rsvp||{}).filter(x=>x==='yes').length;
+      const no=Object.values(v.rsvp||{}).filter(x=>x==='no').length;
+      return `<tr>
+        <td><strong>${v.title}</strong></td><td style="white-space:nowrap">${fmtDate(v.date)}</td>
+        <td>${v.time||'—'}</td><td style="font-size:12px">${v.location||'—'}</td>
+        <td><span class="badge badge-gray">${ci.e} ${ci.l}</span></td>
+        <td><span class="badge ${sMap[v.status]||'badge-gray'}">${v.status}</span></td>
+        <td><span style="color:var(--green)">✓${yes}</span> / <span style="color:var(--red)">✗${no}</span></td>
+        <td><div style="display:flex;gap:5px">
+          <select class="fi" style="font-size:11px;padding:3px 6px;width:85px" onchange="updateDoc2('events','${d.id}',{status:this.value},'Event status')">
+            <option ${v.status==='upcoming'?'selected':''} value="upcoming">Upcoming</option>
+            <option ${v.status==='open'?'selected':''} value="open">Open RSVP</option>
+            <option ${v.status==='soon'?'selected':''} value="soon">Soon</option>
+          </select>
+          <button class="btn btn-red btn-sm btn-icon" onclick="delDoc('events','${d.id}','Event')">🗑</button>
+        </div></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--muted);padding:28px">No events yet.</td></tr>';
+  } catch(e){console.error(e)}
+};
+
+window.addEvent = async () => {
+  const title=document.getElementById('ev-title').value.trim();
+  const date=document.getElementById('ev-date').value;
+  const desc=document.getElementById('ev-desc').value.trim();
+  if(!title||!date||!desc){toast('ev-toast','Fill Title, Date and Description.',false);return;}
+  await addDoc(collection(db,'events'),{title,date,time:document.getElementById('ev-time').value,location:document.getElementById('ev-loc').value.trim(),cat:document.getElementById('ev-cat').value,description:desc,status:document.getElementById('ev-status').value,rsvp:{},createdAt:serverTimestamp()});
+  await addLog(`Added event: "${title}"`);
+  toast('ev-toast',`✅ Event "${title}" added!`);
+  ['ev-title','ev-date','ev-time','ev-loc','ev-desc'].forEach(id=>document.getElementById(id).value='');
+  renderEvents();
+};
+
+// ── POLLS ──
+const renderPolls = async () => {
+  try {
+    const snap = await getDocs(query(collection(db,'polls'),orderBy('createdAt','desc')));
+    const tb = document.getElementById('poll-tbody');
+    const sMap = {active:'badge-green',hot:'badge-red',closed:'badge-gray'};
+    tb.innerHTML = snap.docs.map(d=>{
+      const v=d.data(); const total=Object.values(v.votes||{}).reduce((a,b)=>a+b,0);
+      return `<tr>
+        <td><strong>${v.question}</strong>${v.event?`<br><span style="font-size:11px;color:var(--muted)">📅 ${v.event}</span>`:''}</td>
+        <td><span class="badge ${sMap[v.status]||'badge-gray'}">${v.status}</span></td>
+        <td><strong>${total}</strong> votes</td>
+        <td><div style="display:flex;gap:5px">
+          <select class="fi" style="font-size:11px;padding:3px 6px;width:80px" onchange="updateDoc2('polls','${d.id}',{status:this.value},'Poll status')">
+            <option ${v.status==='active'?'selected':''} value="active">Active</option>
+            <option ${v.status==='hot'?'selected':''} value="hot">🔥 Hot</option>
+            <option ${v.status==='closed'?'selected':''} value="closed">Closed</option>
+          </select>
+          <button class="btn btn-red btn-sm btn-icon" onclick="delDoc('polls','${d.id}','Poll')">🗑</button>
+        </div></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--muted);padding:28px">No polls yet.</td></tr>';
+  } catch(e){console.error(e)}
+};
+
+window.addPoll = async () => {
+  const q=document.getElementById('poll-q').value.trim();
+  const o1=document.getElementById('poll-o1').value.trim();
+  const o2=document.getElementById('poll-o2').value.trim();
+  if(!q||!o1||!o2){toast('poll-toast','Fill question and 2 options.',false);return;}
+  const o3=document.getElementById('poll-o3').value.trim();
+  const opts=[{k:'opt1',l:o1},{k:'opt2',l:o2}]; const votes={opt1:0,opt2:0};
+  if(o3){opts.push({k:'opt3',l:o3});votes.opt3=0;}
+  await addDoc(collection(db,'polls'),{question:q,event:document.getElementById('poll-ev').value.trim(),status:document.getElementById('poll-st').value,opts,votes,createdAt:serverTimestamp()});
+  await addLog(`Created poll: "${q.substring(0,50)}"`);
+  toast('poll-toast','✅ Poll created!');
+  ['poll-q','poll-o1','poll-o2','poll-o3','poll-ev'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('poll-o1').value='Yes, I will join! ✅'; document.getElementById('poll-o2').value="No, I can't make it ❌";
+  renderPolls();
+};
+
+// ── ANNOUNCEMENTS ──
+const renderAnn = async () => {
+  try {
+    const snap = await getDocs(query(collection(db,'announcements'),orderBy('createdAt','desc')));
+    const tb = document.getElementById('ann-tbody');
+    const tMap = {info:'badge-blue',alert:'badge-red',success:'badge-green',gold:'badge-gold'};
+    tb.innerHTML = snap.docs.map(d=>{
+      const v=d.data();
+      return `<tr>
+        <td><strong>${v.title}</strong></td>
+        <td style="font-size:12px;color:var(--mid);max-width:260px">${(v.body||'').substring(0,70)}…</td>
+        <td><span class="badge ${tMap[v.type]||'badge-gray'}">${v.type}</span></td>
+        <td style="font-size:12px;white-space:nowrap">${v.date||fmtDate(new Date().toISOString().split('T')[0])}</td>
+        <td><button class="btn btn-red btn-sm btn-icon" onclick="delDoc('announcements','${d.id}','Announcement')">🗑</button></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px">No announcements.</td></tr>';
+  } catch(e){console.error(e)}
+};
+
+window.addAnn = async () => {
+  const title=document.getElementById('ann-title').value.trim();
+  const body=document.getElementById('ann-body').value.trim();
+  if(!title||!body){toast('ann-toast','Fill title and message.',false);return;}
+  await addDoc(collection(db,'announcements'),{title,body,type:document.getElementById('ann-type').value,date:new Date().toISOString().split('T')[0],author:CU.name||'Admin',createdAt:serverTimestamp()});
+  await addLog(`Posted announcement: "${title}"`);
+  toast('ann-toast','✅ Announcement posted!');
+  document.getElementById('ann-title').value=''; document.getElementById('ann-body').value='';
+  renderAnn();
+};
+
+// ── GALLERY ──
+let galFileObj=null;
+window.previewGalFile = e => { const f=e.target.files[0]; if(!f)return; galFileObj=f; const r=new FileReader(); r.onload=ev=>{ document.getElementById('gal-prev-img').src=ev.target.result; document.getElementById('gal-prev').style.display='block'; }; r.readAsDataURL(f); };
+window.previewGalUrl  = inp => { if(inp.value.trim()){document.getElementById('gal-prev-img').src=inp.value.trim();document.getElementById('gal-prev').style.display='block';}else{document.getElementById('gal-prev').style.display='none';} };
+
+window.addGalleryPhoto = async () => {
+  const title=document.getElementById('gal-title').value.trim()||'Gallery Photo';
+  const cat=document.getElementById('gal-cat').value;
+  let url = document.getElementById('gal-url').value.trim();
+  if(!url && !galFileObj){toast('gal-toast','Upload a photo or paste a URL.',false);return;}
+  if(galFileObj){ url = await uploadFile(galFileObj,`gallery/${Date.now()}_${galFileObj.name}`,'gal-progress-bar','gal-progress'); }
+  await addDoc(collection(db,'gallery'),{title,cat,url,createdAt:serverTimestamp()});
+  await addLog(`Added gallery photo: "${title}"`);
+  toast('gal-toast','✅ Photo added!');
+  document.getElementById('gal-title').value=''; document.getElementById('gal-url').value='';
+  document.getElementById('gal-prev').style.display='none'; galFileObj=null;
+  renderGallery();
+};
+
+const renderGallery = async () => {
+  try {
+    const snap = await getDocs(query(collection(db,'gallery'),orderBy('createdAt','desc')));
+    document.getElementById('gal-grid').innerHTML = snap.docs.map(d=>{
+      const v=d.data();
+      return `<div style="border-radius:var(--r);overflow:hidden;position:relative;aspect-ratio:1;cursor:pointer;border:1px solid var(--border)" onmouseover="this.querySelector('.go').style.opacity=1" onmouseout="this.querySelector('.go').style.opacity=0">
+        <img src="${v.url}" alt="${v.title}" style="width:100%;height:100%;object-fit:cover" onerror="this.style.display='none'">
+        <div class="go" style="position:absolute;inset:0;background:rgba(11,23,48,.5);opacity:0;transition:opacity .3s;display:flex;align-items:center;justify-content:center;gap:6px">
+          <button class="btn btn-red btn-sm btn-icon" onclick="delDoc('gallery','${d.id}','Photo')" style="font-size:16px">🗑</button>
+        </div>
+        <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(11,23,48,.7);padding:5px 8px;font-size:10px;color:#fff">${v.title}</div>
+      </div>`;
+    }).join('');
+  } catch(e){console.error(e)}
+};
+
+// ── MEMBERS ──
+let memEditId=null, memFileObj=null;
+window.previewMemFile = e => { const f=e.target.files[0]; if(!f)return; memFileObj=f; const r=new FileReader(); r.onload=ev=>{ document.getElementById('mem-prev-img').src=ev.target.result; document.getElementById('mem-photo-prev').style.display='block'; }; r.readAsDataURL(f); };
+window.previewMemUrl  = inp => { if(inp.value.trim()){document.getElementById('mem-prev-img').src=inp.value.trim();document.getElementById('mem-photo-prev').style.display='block';}else{document.getElementById('mem-photo-prev').style.display='none';} };
+
+window.submitMember = async () => {
+  const name=document.getElementById('mem-name').value.trim();
+  const role=document.getElementById('mem-role').value.trim();
+  if(!name||!role){toast('mem-toast','Name and Role required.',false);return;}
+  const btn=document.getElementById('mem-submit-btn');
+  btn.textContent='Saving…'; btn.style.opacity='.7'; btn.style.pointerEvents='none';
+  try {
+    let photoUrl = document.getElementById('mem-photo-url').value.trim();
+    if(memFileObj){ photoUrl = await uploadFile(memFileObj,`members/${Date.now()}_${memFileObj.name}`,'mem-progress-bar','mem-progress'); }
+    const data = {
+      name, role,
+      phone:document.getElementById('mem-phone').value.trim(),
+      email:document.getElementById('mem-email').value.trim(),
+      year:parseInt(document.getElementById('mem-year').value)||new Date().getFullYear(),
+      category:document.getElementById('mem-cat').value,
+      bio:document.getElementById('mem-bio').value.trim(),
+      photoUrl, initials:ini(name),
+      updatedAt:serverTimestamp()
+    };
+    if(memEditId){
+      await setDoc(doc(db,'members',memEditId),data,{merge:true});
+      await addLog(`Updated member: "${name}"`);
+      toast('mem-toast',`✅ "${name}" updated!`);
+    } else {
+      data.createdAt = serverTimestamp();
+      await addDoc(collection(db,'members'),data);
+      await addLog(`Added member: "${name}" (${role})`);
+      toast('mem-toast',`✅ "${name}" added!`);
+    }
+    resetMemForm(); renderMembers();
+    setTimeout(()=>{ document.getElementById('mem-form').style.display='none'; },1500);
+  } catch(e){toast('mem-toast','Error: '+e.message,false);}
+  btn.textContent='+ Add Member'; btn.style.opacity=''; btn.style.pointerEvents='';
+};
+
+window.resetMemForm = () => {
+  ['mem-name','mem-role','mem-phone','mem-email','mem-year','mem-bio','mem-photo-url'].forEach(id=>{ const el=document.getElementById(id);if(el)el.value=''; });
+  document.getElementById('mem-file').value=''; document.getElementById('mem-photo-prev').style.display='none';
+  document.getElementById('mem-edit-id').value=''; document.getElementById('mem-submit-btn').textContent='+ Add Member';
+  document.getElementById('mem-form-title').innerHTML='Add <em>Member</em>';
+  document.getElementById('mem-cat').value='member'; memEditId=null; memFileObj=null;
+};
+
+window.editMember = async id => {
+  const snap = await getDoc(doc(db,'members',id));
+  if(!snap.exists()) return;
+  const v=snap.data(); memEditId=id;
+  document.getElementById('mem-name').value=v.name||''; document.getElementById('mem-role').value=v.role||'';
+  document.getElementById('mem-phone').value=v.phone||''; document.getElementById('mem-email').value=v.email||'';
+  document.getElementById('mem-year').value=v.year||''; document.getElementById('mem-cat').value=v.category||'member';
+  document.getElementById('mem-bio').value=v.bio||''; document.getElementById('mem-photo-url').value=v.photoUrl||'';
+  if(v.photoUrl){document.getElementById('mem-prev-img').src=v.photoUrl;document.getElementById('mem-photo-prev').style.display='block';}
+  document.getElementById('mem-edit-id').value=id;
+  document.getElementById('mem-submit-btn').textContent='💾 Save Changes';
+  document.getElementById('mem-form-title').innerHTML='Edit <em>Member</em>';
+  document.getElementById('mem-form').style.display='block';
+  document.getElementById('mem-form').scrollIntoView({behavior:'smooth'});
+};
+
+window.renderMembers = async () => {
+  try {
+    const snap = await getDocs(query(collection(db,'members'),orderBy('createdAt','asc')));
+    let docs = snap.docs;
+    const cat=document.getElementById('mem-filter')?.value||'';
+    const q=(document.getElementById('mem-search')?.value||'').toLowerCase();
+    if(cat) docs=docs.filter(d=>d.data().category===cat);
+    if(q) docs=docs.filter(d=>{ const v=d.data(); return (v.name||'').toLowerCase().includes(q)||(v.role||'').toLowerCase().includes(q); });
+    const all=snap.docs;
+    document.getElementById('mc-lead').textContent=all.filter(d=>d.data().category==='leadership').length;
+    document.getElementById('mc-gen').textContent=all.filter(d=>d.data().category==='member').length;
+    document.getElementById('mc-total').textContent=all.length;
+    const grid=document.getElementById('mem-grid');
+    const empty=document.getElementById('mem-empty');
+    if(!docs.length){grid.innerHTML='';empty.style.display='block';return;}
+    empty.style.display='none';
+    const catCol={leadership:'var(--gold)',member:'var(--blue)',honorary:'var(--green)'};
+    const catLbl={leadership:'Leadership',member:'Member',honorary:'Honorary'};
+    grid.innerHTML=docs.map(d=>{
+      const v=d.data();
+      return `<div class="mc">
+        <div class="mc-photo">
+          ${v.photoUrl?`<img src="${v.photoUrl}" alt="${v.name}" onerror="this.style.display='none'">`:''}
+          <div class="mc-initials">${v.initials||ini(v.name)}</div>
+          <div class="mc-cat-tag" style="background:${catCol[v.category]||'#666'};color:${v.category==='leadership'?'#0B1730':'#fff'}">${catLbl[v.category]||'Member'}</div>
+        </div>
+        <div class="mc-body">
+          <div class="mc-name">${v.name}</div>
+          <div class="mc-role">${v.role}</div>
+          ${v.phone?`<div class="mc-detail">📞 ${v.phone}</div>`:''}
+          ${v.year?`<div class="mc-detail" style="margin-top:2px">Since ${v.year}</div>`:''}
+          ${v.bio?`<div class="mc-detail" style="margin-top:4px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${v.bio}</div>`:''}
+        </div>
+        <div class="mc-actions">
+          <button class="mc-act-btn" onclick="editMember('${d.id}')">✏️ Edit</button>
+          <div style="width:1px;background:var(--border)"></div>
+          <button class="mc-act-btn del" onclick="delDoc('members','${d.id}','Member')">🗑 Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  } catch(e){console.error(e)}
+};
+
+// ── USER ACCOUNTS ──
+const renderAccounts = async () => {
+  try {
+    const snap = await getDocs(collection(db,'users'));
+    const tb = document.getElementById('acc-tbody');
+    tb.innerHTML = snap.docs.map(d=>{
+      const v=d.data();
+      return `<tr>
+        <td><strong>${v.name||'—'}</strong></td>
+        <td style="font-size:12px">${v.email||'—'}</td>
+        <td><span class="badge ${v.role==='admin'?'badge-gold':'badge-blue'}">${v.role||'member'}</span></td>
+        <td><code style="font-size:10px;background:var(--cream);padding:2px 6px;border-radius:4px">${d.id.substring(0,16)}…</code></td>
+        <td><button class="btn btn-red btn-sm btn-icon" onclick="delUser('${d.id}','${v.name||v.email}')">🗑</button></td>
+      </tr>`;
+    }).join('') || '<tr><td colspan="5" style="text-align:center;color:var(--muted);padding:28px">No accounts found.</td></tr>';
+  } catch(e){console.error(e)}
+};
+
+window.createAccount = async () => {
+  const name=document.getElementById('acc-name').value.trim();
+  const email=document.getElementById('acc-email').value.trim();
+  const pass=document.getElementById('acc-pass').value.trim();
+  const role=document.getElementById('acc-role').value;
+  if(!name||!email||!pass){toast('acc-toast','Name, Email and Password required.',false);return;}
+  if(pass.length<6){toast('acc-toast','Password must be at least 6 characters.',false);return;}
+  try {
+    const cred = await createUserWithEmailAndPassword(auth,email,pass);
+    await setDoc(doc(db,'users',cred.user.uid),{name,email,role,initials:ini(name),createdAt:serverTimestamp()});
+    // Re-sign in as admin (createUser signs in as new user)
+    // Just store new user and let admin stay logged in via session
+    await addLog(`Created account: "${email}" (${role})`);
+    toast('acc-toast',`✅ Account for "${name}" created!`);
+    ['acc-name','acc-email','acc-pass'].forEach(id=>document.getElementById(id).value='');
+    renderAccounts();
+  } catch(e){toast('acc-toast','Error: '+e.message,false);}
+};
+
+window.delUser = async (uid2,name) => {
+  if(!confirm(`Delete account for "${name}"?`)) return;
+  await deleteDoc(doc(db,'users',uid2));
+  await addLog(`Deleted user account: "${name}"`);
+  renderAccounts();
+};
+
+// ── GENERIC DELETE ──
+window.delDoc = async (col,id,label) => {
+  if(!confirm(`Delete this ${label}?`)) return;
+  await deleteDoc(doc(db,col,id));
+  await addLog(`Deleted ${label.toLowerCase()}`);
+  const renders = {projects:renderProjects,events:renderEvents,polls:renderPolls,announcements:renderAnn,gallery:renderGallery,members:renderMembers};
+  if(renders[col]) renders[col]();
+};
+
+window.updateDoc2 = async (col,id,data,label) => {
+  const { updateDoc: upd } = await import("https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js");
+  await upd(doc(db,col,id),data);
+  await addLog(`Updated ${label}`);
+};
+
+// ── SETTINGS (Hero, About, Contact, Services) ──
+const SETTINGS_MAP = {
+  hero:    ['h-t1','h-t2','h-sub','h-b1','h-b2','h-s1n','h-s1l','h-s2n','h-s2l','h-s3n','h-s3l','h-s4n','h-s4l'],
+  about:   ['ab-h','ab-q','ab-p1','ab-p2','ab-fd','ab-mc'],
+  contact: ['ci-addr','ci-ph','ci-email','ci-pn','ci-pp','ci-vp','ci-sn','ci-sp','ci-fb','ci-web'],
+};
+const TOAST_MAP = {hero:'hero-toast',about:'about-toast',contact:'contact-toast'};
+
+window.saveSettings = async key => {
+  const fields=SETTINGS_MAP[key]; if(!fields) return;
+  const data={};
+  fields.forEach(id=>{ const el=document.getElementById(id); if(el) data[id]=el.value.trim(); });
+  await setDoc(doc(db,'settings',key),{...data,updatedAt:serverTimestamp()},{merge:true});
+  await addLog(`Updated ${key} settings`);
+  toast(TOAST_MAP[key]||key+'-toast',`✅ ${key} settings saved to Firebase!`);
+};
+
+const loadSettings = async (key, fields) => {
+  try {
+    const snap = await getDoc(doc(db,'settings',key));
+    if(snap.exists()){const v=snap.data(); fields.forEach(id=>{const el=document.getElementById(id);if(el&&v[id]!==undefined)el.value=v[id];});}
+  } catch{}
+};
+window.loadHero    = () => loadSettings('hero',SETTINGS_MAP.hero);
+window.loadAbout   = () => loadSettings('about',SETTINGS_MAP.about);
+window.loadContact = () => loadSettings('contact',SETTINGS_MAP.contact);
+
+// ── SERVICES EDITOR ──
+const SVC_ITEMS = [
+  {id:'blood',e:'🩸',n:'Blood Donation & Health Camps',d:'We organize health check-ups, awareness programs and blood donation camps to support hospitals and help save lives.'},
+  {id:'environment',e:'🌿',n:'Tree Plantation & Environment',d:'We plant trees, clean public places, and spread awareness about protecting nature.'},
+  {id:'education',e:'📚',n:'Awareness & Education Activities',d:'Conducting seminars, quizzes, competitions and awareness drives.'},
+  {id:'sports',e:'⚽',n:'Youth Sports & Cultural Events',d:'Through football, badminton and cultural programs, helping youth stay active and creative.'},
+  {id:'donation',e:'🤲',n:'Donation Drives for People in Need',d:'Distributing clothes, food, books and essentials to underprivileged families.'},
+  {id:'community',e:'🤝',n:'Community Support & Humanitarian Service',d:'Working closely with Lions Club of Contai, offering service wherever needed.'},
+];
+window.renderServicesEditor = async () => {
+  let saved = {};
+  try { const snap=await getDoc(doc(db,'settings','services')); if(snap.exists()) saved=snap.data(); } catch{}
+  document.getElementById('svc-list').innerHTML = SVC_ITEMS.map(s=>`
+    <div class="card" style="margin-bottom:12px">
+      <div class="card-hd"><h3>${s.e} <em>${saved['n_'+s.id]||s.n}</em></h3></div>
+      <div class="card-body">
+        <div class="fgrid">
+          <div class="fg"><label>Name</label><input class="fi" type="text" id="sv-n-${s.id}" value="${saved['n_'+s.id]||s.n}"></div>
+          <div class="fg"><label>Emoji</label><input class="fi" type="text" id="sv-e-${s.id}" value="${saved['e_'+s.id]||s.e}" style="width:80px"></div>
+          <div class="fg full"><label>Description</label><textarea class="fi" id="sv-d-${s.id}" rows="2">${saved['d_'+s.id]||s.d}</textarea></div>
+        </div>
+        <button class="btn btn-gold btn-sm" onclick="saveSvc('${s.id}')">💾 Save</button>
+      </div>
+    </div>`).join('');
+};
+
+window.saveSvc = async id => {
+  const data={ [`n_${id}`]:document.getElementById(`sv-n-${id}`).value.trim(), [`e_${id}`]:document.getElementById(`sv-e-${id}`).value.trim(), [`d_${id}`]:document.getElementById(`sv-d-${id}`).value.trim(), updatedAt:serverTimestamp() };
+  await setDoc(doc(db,'settings','services'),data,{merge:true});
+  await addLog(`Updated service: "${id}"`);
+  alert(`✅ Service "${id}" saved to Firebase!`);
+};
+
+// ── BOOT ──
+if(CU?.role==='admin'){
+  renderOverview();
+}
+</script>
+</body>
+</html>
